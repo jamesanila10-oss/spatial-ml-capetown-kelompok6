@@ -2726,3 +2726,10 @@ canvas:not(.leaflet-zoom-animated) { max-width: 100%; }
   border-bottom: 1px solid var(--outline-variant) !important;
 }
 
+/* Raster image overlay pixel crispness (tidak blur saat zoom in) */
+.crisp-raster-overlay {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+

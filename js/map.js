@@ -82,8 +82,8 @@ const MapModule = (() => {
     veg2025:  { color: '#66BB6A', label: 'Vegetation 2025',   meta: 'Light Green vegetation extent' },
     gain:     { color: '#00BCD4', label: 'Vegetation Gain',    meta: 'Class 1 (Non-Veg → Veg)' },
     loss:     { color: '#F44336', label: 'Vegetation Loss',    meta: 'Class 2 (Veg → Non-Veg)' },
-    class2024: { color: '#888888', label: 'Classification 2024', meta: 'RF raster classification' },
-    class2025: { color: '#2196F3', label: 'Classification 2025', meta: 'RF raster classification' },
+    class2024: { color: '#9C27B0', label: 'Classification 2024', meta: 'RF raster classification' },
+    class2025: { color: '#FFD600', label: 'Classification 2025', meta: 'RF raster classification' },
   };
 
   // -------------------------------------------------------
@@ -421,8 +421,8 @@ const MapModule = (() => {
     ];
 
     const referenceLayers = [
-      { id: 'class2024', name: 'Classification 2024', desc: 'Random Forest raster model (2024)', color: '#888888' },
-      { id: 'class2025', name: 'Classification 2025', desc: 'Random Forest raster model (2025)', color: '#2196F3' }
+      { id: 'class2024', name: 'Classification 2024', desc: 'Random Forest raster model (2024)', color: '#9C27B0' },
+      { id: 'class2025', name: 'Classification 2025', desc: 'Random Forest raster model (2025)', color: '#FFD600' }
     ];
 
     const boundaryLayer = { id: 'boundary', name: 'Cape Town Boundary', desc: 'Study Area boundary outline', color: '#FFC107' };
@@ -984,9 +984,12 @@ const MapModule = (() => {
   }
 
   // -------------------------------------------------------
-  // Raster layers store
+  // Raster stores
+  // _parsedGeorasters : cache data TIF (parse sekali, reuse)
+  // _rasterLayers     : referensi GeoRasterLayer di map
   // -------------------------------------------------------
-  const _rasterLayers = { class2024: null, class2025: null };
+  const _parsedGeorasters = { class2024: null, class2025: null };
+  const _rasterLayers     = { class2024: null, class2025: null };
 
   // -------------------------------------------------------
   // Raster attempt — GeoRaster + GeoRasterLayer
@@ -995,64 +998,88 @@ const MapModule = (() => {
   // Track whether raster setup has already run (prevent duplicate rows)
   let _rasterSetupDone = false;
   function _setupRasterAttempt() {
-    // CDN scripts load async — if not ready yet, defer to retryRasterSetup()
-    if (typeof parseGeoraster === 'undefined' || typeof GeoRasterLayer === 'undefined') {
-      console.info('[Raster] georaster CDN not ready yet — will retry when loaded.');
+    if (typeof parseGeoraster === 'undefined') {
+      console.info('[Raster] parseGeoraster CDN not ready yet.');
       return;
     }
     _buildFilterPanel();
   }
 
-  // Called from index.html once BOTH georaster + GeoRasterLayer CDN scripts finish
+  // Dipanggil dari index.html setelah CDN load
   function retryRasterSetup() {
     if (!map) { setTimeout(retryRasterSetup, 500); return; }
     _buildFilterPanel();
   }
 
-  // Lazy-load a raster layer when toggled
-  async function _loadRasterLayer(layerId) {
-    if (_rasterLayers[layerId]) {
-      return _rasterLayers[layerId];
+  // -------------------------------------------------------
+  // Raster: parse TIF → render canvas → L.imageOverlay
+  // (Tanpa GeoRasterLayer — lebih simpel, tidak ada shared-state bug)
+  // -------------------------------------------------------
+  async function _buildImageOverlay(layerId) {
+    if (typeof parseGeoraster === 'undefined') {
+      throw new Error('parseGeoraster library not loaded');
     }
 
-    if (typeof parseGeoraster === 'undefined' || typeof GeoRasterLayer === 'undefined') {
-      throw new Error('Classification layer unavailable (GeoRaster library not loaded)');
+    // 1. Parse TIF (cache per session, satu kali saja)
+    if (!_parsedGeorasters[layerId]) {
+      const basePath = layerId === 'class2024'
+        ? Loader.DATA_FILES.tif2024
+        : Loader.DATA_FILES.tif2025;
+      console.log(`[Raster] Fetching ${layerId}: ${basePath}`);
+      const res = await fetch(basePath, { cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status} — ${basePath}`);
+      const ab  = await res.arrayBuffer();
+      _parsedGeorasters[layerId] = await parseGeoraster(ab);
+      const gr  = _parsedGeorasters[layerId];
+      console.log(`[Raster] ✓ ${layerId} parsed — noData:${gr.noDataValue} w:${gr.width} h:${gr.height}`);
     }
 
-    const path = layerId === 'class2024' ? Loader.DATA_FILES.tif2024 : Loader.DATA_FILES.tif2025;
-    const name = LAYER_META[layerId].label;
+    const gr   = _parsedGeorasters[layerId];
+    const IS24 = (layerId === 'class2024');
 
-    console.log(`[Raster] Lazy-fetching: ${path}`);
-    const res = await fetch(path);
-    if (!res.ok) throw new Error(`HTTP ${res.status} — file not found: ${path}`);
-    const ab = await res.arrayBuffer();
-    const georaster = await parseGeoraster(ab);
+    // Warna per layer: ungu untuk 2024 (R:156, G:39, B:176), kuning untuk 2025 (R:255, G:214, B:0)
+    const [R, G, B] = IS24 ? [156, 39, 176] : [255, 214, 0];
 
-    // Log CRS / bounds metadata
-    console.log(`[Raster] ${name} Loaded:`, {
-      projection: georaster.projection,
-      width: georaster.width,
-      height: georaster.height,
-      xmin: georaster.xmin, xmax: georaster.xmax,
-      ymin: georaster.ymin, ymax: georaster.ymax,
-      noDataValue: georaster.noDataValue,
-      numberOfRasters: georaster.numberOfRasters,
+    // 2. Render 1:1 ke canvas sesuai resolusi asli TIF (tanpa downsampling!)
+    const W  = gr.width;
+    const H  = gr.height;
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    const ctx = cv.getContext('2d');
+    const img = ctx.createImageData(W, H);
+
+    // Gunakan Uint32Array 32-bit untuk kecepatan render ultra cepat (ABGR format)
+    const data32 = new Uint32Array(img.data.buffer);
+    const col32  = (220 << 24) | (B << 16) | (G << 8) | R;  // Alpha 220 (~86%)
+
+    const band = gr.values[0];
+    for (let py = 0; py < H; py++) {
+      const row = band[py];
+      if (!row) continue;
+      const rowOffset = py * W;
+      for (let px = 0; px < W; px++) {
+        const raw = row[px];
+        if (raw !== null && raw !== undefined && Math.round(raw) === 1) {
+          data32[rowOffset + px] = col32;
+        }
+      }
+    }
+    ctx.putImageData(img, 0, 0);
+
+    // 3. Convert ke Blob URL & buat L.imageOverlay dengan rendering pixelated/tajam
+    return new Promise((resolve) => {
+      cv.toBlob(blob => {
+        const imgUrl  = URL.createObjectURL(blob);
+        const bounds  = L.latLngBounds([gr.ymin, gr.xmin], [gr.ymax, gr.xmax]);
+        const overlay = L.imageOverlay(imgUrl, bounds, {
+          opacity:     _layerOpacities[layerId] ?? 0.75,
+          interactive: false,
+          className:   'crisp-raster-overlay'
+        });
+        console.log(`[Raster] ✓ 1:1 crisp imageOverlay created for ${layerId} (${W}x${H}px)`);
+        resolve(overlay);
+      }, 'image/png');
     });
-
-    const layer = new GeoRasterLayer({
-      georaster,
-      opacity: _layerOpacities[layerId] ?? 0.75,
-      resolution: 128,
-      pixelValuesToColorFn: vals => {
-        const v = Math.round(vals[0]);
-        if (v === 1) return 'rgba(27,94,32,0.85)';    // Vegetation
-        if (v === 2) return 'rgba(100,181,246,0.75)';  // Non-Vegetation
-        return null; // transparent / nodata
-      },
-    });
-
-    _rasterLayers[layerId] = layer;
-    return layer;
   }
 
   // -------------------------------------------------------
@@ -1512,24 +1539,40 @@ const MapModule = (() => {
   // Public: Toggle raster layer visibility
   // -------------------------------------------------------
   async function toggleRasterLayer(layerId, visible) {
+    console.log(`[Raster] toggleRasterLayer → "${layerId}" visible=${visible}`);
     _layerVisibility[layerId] = visible;
+
     if (visible) {
+      // Hapus layer lama jika ada
+      const old = _rasterLayers[layerId];
+      if (old && map.hasLayer(old)) map.removeLayer(old);
+      _rasterLayers[layerId] = null;
+
       _updateSidebarRow(layerId, 'loading');
       _showMapLoader(`Loading ${LAYER_META[layerId]?.label || layerId}…`);
+
       try {
-        const layer = await _loadRasterLayer(layerId);
-        if (layer && !map.hasLayer(layer)) {
-          layer.addTo(map);
-          if (layerControl) {
-            layerControl.removeLayer(layer);
-            layerControl.addOverlay(layer, LAYER_META[layerId].label);
-          }
-          setActiveLayer(layerId);
+        // Render TIF → canvas → imageOverlay
+        const overlay = await _buildImageOverlay(layerId);
+
+        // Race condition guard
+        if (!_layerVisibility[layerId]) {
+          console.warn(`[Raster] ${layerId} selesai tapi sudah di-off, skip.`);
+          return;
         }
+
+        // Pastikan tidak ada layer lama yang masuk saat async
+        const cur = _rasterLayers[layerId];
+        if (cur && map.hasLayer(cur)) map.removeLayer(cur);
+
+        overlay.addTo(map);
+        _rasterLayers[layerId] = overlay;
+        setActiveLayer(layerId);
         _updateSidebarRow(layerId, 'ready');
-        Utils.showToast(`${LAYER_META[layerId]?.label || layerId} raster loaded.`, 'success');
+        Utils.showToast(`${LAYER_META[layerId]?.label || layerId} loaded ✓`, 'success');
+
       } catch (err) {
-        console.error(`[Raster] ✗ ${layerId} FAILED:`, err.message);
+        console.error(`[Raster] ✗ ${layerId}:`, err.message);
         _updateSidebarRow(layerId, 'failed');
         const cb = document.getElementById(`lyr-${layerId}`);
         if (cb) cb.checked = false;
@@ -1538,14 +1581,12 @@ const MapModule = (() => {
       } finally {
         _hideMapLoader();
       }
+
     } else {
       const layer = _rasterLayers[layerId];
-      if (layer && map.hasLayer(layer)) {
-        map.removeLayer(layer);
-      }
-      if (_activeLayerId === layerId) {
-        setActiveLayer(null);
-      }
+      if (layer && map.hasLayer(layer)) map.removeLayer(layer);
+      _rasterLayers[layerId] = null;
+      if (_activeLayerId === layerId) setActiveLayer(null);
     }
   }
 

@@ -1,0 +1,322 @@
+<!DOCTYPE html><html lang="id"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Sentinel-V: Cape Town Fire Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-lowest": "#ffffff",
+                        "surface": "#fbf8fa",
+                        "tertiary-fixed": "#6dfe9c",
+                        "surface-bright": "#fbf8fa",
+                        "surface-container": "#f0edef",
+                        "outline-variant": "#c5c6cd",
+                        "on-tertiary-container": "#00a555",
+                        "on-tertiary-fixed-variant": "#005227",
+                        "surface-container-low": "#f5f3f4",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#d8e3fb",
+                        "error": "#ba1a1a",
+                        "primary": "#091426",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#79db8d",
+                        "on-primary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#bcc7de",
+                        "on-primary-container": "#8590a6",
+                        "inverse-primary": "#bcc7de",
+                        "surface-tint": "#545f73",
+                        "on-background": "#1b1b1d",
+                        "on-secondary-fixed-variant": "#005323",
+                        "surface-container-highest": "#e4e2e3",
+                        "background": "#fbf8fa",
+                        "on-tertiary-fixed": "#00210c",
+                        "surface-dim": "#dcd9db",
+                        "on-surface-variant": "#45474c",
+                        "on-secondary-container": "#007233",
+                        "secondary-container": "#92f5a4",
+                        "secondary": "#006d30",
+                        "tertiary-fixed-dim": "#4de082",
+                        "surface-variant": "#e4e2e3",
+                        "on-surface": "#1b1b1d",
+                        "tertiary-container": "#003014",
+                        "on-secondary-fixed": "#00210a",
+                        "inverse-on-surface": "#f3f0f2",
+                        "on-error-container": "#93000a",
+                        "surface-container-high": "#eae7e9",
+                        "inverse-surface": "#303032",
+                        "primary-container": "#1e293b",
+                        "outline": "#75777d",
+                        "on-primary-fixed": "#111c2d",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "secondary-fixed": "#95f8a7",
+                        "tertiary": "#001907"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "nav_height": "5vh",
+                        "sidebar_analytics_width": "25%",
+                        "map_viewport_width": "55%",
+                        "gutter": "1px",
+                        "panel_padding": "1rem",
+                        "sidebar_control_width": "20%"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "mono-data": ["monospace"],
+                        "headline-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-bold": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["12px", { "lineHeight": "16px", "fontWeight": "400" }],
+                        "mono-data": ["12px", { "lineHeight": "16px", "fontWeight": "500" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-md": ["18px", { "lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label-bold": ["11px", { "lineHeight": "14px", "letterSpacing": "0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .map-layer-0 { background-color: #fbf8fa; }
+        .map-layer-1 { background-color: #f5f3f4; }
+        .map-layer-2 { border: 1px solid #e4e2e3; background: #ffffff; }
+        .map-layer-3 { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #c5c6cd; border-radius: 4px; }
+        .toggle-checkbox:checked { right: 0; border-color: #006d30; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #006d30; }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen overflow-hidden flex flex-col">
+<!-- TopNavBar -->
+<nav class="bg-surface dark:bg-surface-dim font-headline-md text-headline-md docked full-width top-0 h-[51px] border-b border-outline-variant dark:border-outline flat no shadows flex justify-between items-center px-4 w-full">
+<div class="flex items-center gap-8">
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Sentinel-V: Cape Town Fire Analysis</span>
+<div class="hidden md:flex gap-6 items-center pt-2 h-full">
+<a class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1 font-body-md text-body-md cursor-pointer transition-all duration-200" href="#">Peta Hasil</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md cursor-pointer transition-all duration-200" href="#">Data &amp; Proses</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md cursor-pointer transition-all duration-200" href="#">Evaluasi Model</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors font-body-md text-body-md cursor-pointer transition-all duration-200" href="#">Insight Hasil</a>
+</div>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant dark:text-outline-variant">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors" data-icon="settings">settings</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+<!-- Main Content Area (95vh) -->
+<div class="flex h-[972px] w-full bg-background overflow-hidden">
+<!-- Left Sidebar (20%) - Control Sidebar -->
+<aside class="w-sidebar_control_width bg-surface-container-low dark:bg-surface-container border-r border-outline-variant dark:border-outline flex flex-col p-panel_padding gap-4 overflow-y-auto custom-scrollbar">
+<div class="mb-2">
+<h2 class="font-label-bold text-label-bold text-on-surface uppercase tracking-wider mb-1">Control Sidebar</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Analysis Parameters</p>
+</div>
+<!-- Layer Controls -->
+<div class="map-layer-2 rounded p-3 flex flex-col gap-3">
+<h3 class="font-label-bold text-label-bold text-primary mb-2">LAYERS</h3>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm">Basemap</span>
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-outline appearance-none cursor-pointer z-10 transition-transform duration-200 ease-in-out" id="basemap-toggle" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-surface-variant cursor-pointer" for="basemap-toggle"></label>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="font-body-sm text-body-sm">Batas kota</span>
+<div class="relative inline-block w-8 h-4 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-2 border-outline appearance-none cursor-pointer z-10 transition-transform duration-200 ease-in-out" id="batas-toggle" name="toggle" type="checkbox">
+<label class="toggle-label block overflow-hidden h-4 rounded-full bg-surface-variant cursor-pointer" for="batas-toggle"></label>
+</div>
+</div>
+<div class="h-px bg-outline-variant w-full my-1"></div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-secondary"></div>
+<span class="font-body-sm text-body-sm">Target 2024</span>
+</div>
+<input checked="" class="accent-secondary h-3 w-3 border-outline" type="checkbox">
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-secondary-fixed-dim"></div>
+<span class="font-body-sm text-body-sm">Target 2025</span>
+</div>
+<input checked="" class="accent-secondary-fixed-dim h-3 w-3 border-outline" type="checkbox">
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-primary-fixed"></div>
+<span class="font-body-sm text-body-sm">Bertambah</span>
+</div>
+<input checked="" class="accent-primary-fixed h-3 w-3 border-outline" type="checkbox">
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-error-container"></div>
+<span class="font-body-sm text-body-sm">Berkurang</span>
+</div>
+<input checked="" class="accent-error-container h-3 w-3 border-outline" type="checkbox">
+</div>
+</div>
+<!-- Opacity Slider -->
+<div class="map-layer-2 rounded p-3 flex flex-col gap-2 mt-2">
+<div class="flex justify-between items-center">
+<h3 class="font-label-bold text-label-bold text-primary">LAYER OPACITY</h3>
+<span class="font-mono-data text-mono-data text-on-surface-variant">85%</span>
+</div>
+<input class="w-full h-1 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary" max="100" min="0" type="range" value="85">
+<div class="flex justify-between text-xs text-outline font-mono-data mt-1">
+<span class="">0%</span>
+<span class="">100%</span>
+</div>
+</div>
+<button class="mt-auto bg-primary text-on-primary font-body-sm text-body-sm py-2 px-4 rounded-full w-full hover:bg-primary-container transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="play_arrow">play_arrow</span>
+                Execute Analysis
+            </button>
+</aside>
+<!-- Center Map (55%) -->
+<main class="w-map_viewport_width relative bg-surface-container-lowest"><div class="absolute top-4 left-4 flex bg-white rounded-sm shadows overflow-hidden z-10 border border-outline/20"><button class="px-3 py-1.5 text-xs font-semibold bg-white text-primary border-r border-outline/10 hover:bg-surface-container transition-colors">Map</button><button class="px-3 py-1.5 text-xs font-semibold bg-primary text-on-primary">Satellite</button></div>
+<!-- Simulated Map Background -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center" data-alt="A highly detailed, ultra-high-resolution satellite map of Cape Town viewed from a top-down GIS perspective. The map displays a complex, textured terrain with varied elevation data, sparse vegetation marked in dark and light greens, and urban structures. A high-contrast color palette distinguishes different zones clearly, emphasizing environmental monitoring and scientific analysis. The lighting is neutral and even, ensuring clarity typical of a professional geographic information system interface. The overall aesthetic is technical, precise, and data-rich." data-location="Cape Town" style="background-image: url(&quot;https://maps.googleapis.com/maps/api/staticmap?center=-33.9249,18.4241&amp;zoom=13&amp;size=1200x800&amp;maptype=satellite&amp;key=YOUR_API_KEY&quot;);"></div>
+<!-- Map Overlays -->
+<div class="absolute inset-0 pointer-events-none opacity-60 mix-blend-multiply" style="background-image: radial-gradient(circle at 40% 60%, rgb(0, 109, 48) 0%, transparent 30%), radial-gradient(circle at 60% 40%, rgb(186, 26, 26) 0%, transparent 25%), radial-gradient(circle, rgb(121, 219, 141) 0%, transparent 40%);"></div>
+<!-- Mockup Tooltip -->
+<div class="absolute top-1/3 left-1/3 map-layer-3 map-layer-2 p-3 rounded-lg z-10 w-48 pointer-events-none border border-outline/30 bg-surface/90 backdrop-blur-sm">
+<div class="flex items-center gap-2 mb-2 pb-2 border-b border-outline-variant">
+<div class="w-2 h-2 rounded-full bg-primary-fixed"></div>
+<span class="font-label-bold text-label-bold text-primary">Kategori: Bertambah</span>
+</div>
+<div class="flex justify-between items-center mb-1">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Luas:</span>
+<span class="font-mono-data text-mono-data text-on-surface font-semibold">120 ha</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Persentase:</span>
+<span class="font-mono-data text-mono-data text-on-surface font-semibold">15%</span>
+</div>
+</div>
+<!-- Map Controls (Floating) -->
+<div class="absolute top-4 right-4 flex flex-col gap-2"><div class="flex flex-col bg-white rounded-sm shadows border border-outline/10"><button class="w-10 h-10 flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface border-b border-outline/10"><span class="material-symbols-outlined text-[20px]">add</span></button><button class="w-10 h-10 flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface"><span class="material-symbols-outlined text-[20px]">remove</span></button></div><button class="w-10 h-10 bg-white rounded-sm shadows border border-outline/10 flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface mt-2"><span class="material-symbols-outlined text-[20px]">my_location</span></button></div>
+<!-- Scale Bar -->
+<div class="absolute bottom-6 left-6 map-layer-2 map-layer-3 px-3 py-1 rounded bg-surface/90 backdrop-blur-sm border border-outline/30 flex flex-col gap-1 pointer-events-none">
+<div class="h-1 w-24 border-b-2 border-l-2 border-r-2 border-primary"></div>
+<div class="flex justify-between font-mono-data text-mono-data text-[10px] text-primary">
+<span class="">0</span>
+<span class="">1:50.000</span>
+<span class="">1km</span>
+</div>
+</div>
+<!-- Legend Bottom Right -->
+<div class="absolute bottom-6 right-6 map-layer-2 map-layer-3 p-3 rounded bg-surface/90 backdrop-blur-sm border border-outline/30 flex flex-col gap-2 pointer-events-none w-40">
+<h4 class="font-label-bold text-label-bold text-primary mb-1 border-b border-outline-variant pb-1">LEGENDA</h4>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-secondary"></div>
+<span class="font-body-sm text-body-sm">Target 2024</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-secondary-fixed-dim"></div>
+<span class="font-body-sm text-body-sm">Target 2025</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-primary-fixed"></div>
+<span class="font-body-sm text-body-sm">Bertambah</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-sm bg-error-container"></div>
+<span class="font-body-sm text-body-sm">Berkurang</span>
+</div>
+</div>
+</main>
+<!-- Right Analytics (25%) -->
+<aside class="w-sidebar_analytics_width bg-surface-container-low dark:bg-surface-container border-l border-outline-variant dark:border-outline flex flex-col p-panel_padding gap-4 overflow-y-auto custom-scrollbar">
+<h2 class="font-label-bold text-label-bold text-on-surface uppercase tracking-wider mb-2">Metrics Analysis</h2>
+<!-- Metric Cards Bento Grid -->
+<div class="grid grid-cols-2 gap-3">
+<div class="map-layer-2 rounded p-3 flex flex-col col-span-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1">Luas vegetasi 2024</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-primary">4.250</span>
+<span class="font-mono-data text-mono-data text-outline">ha</span>
+</div>
+</div>
+<div class="map-layer-2 rounded p-3 flex flex-col col-span-2">
+<span class="font-body-sm text-body-sm text-on-surface-variant mb-1">Luas vegetasi 2025</span>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-primary">3.980</span>
+<span class="font-mono-data text-mono-data text-outline">ha</span>
+</div>
+</div>
+<div class="map-layer-2 rounded p-3 flex flex-col col-span-2 bg-error-container/20 border-error-container">
+<span class="font-body-sm text-body-sm text-on-error-container mb-1 font-semibold">Perubahan bersih</span>
+<div class="flex items-center justify-between">
+<div class="flex items-baseline gap-1">
+<span class="font-headline-md text-headline-md text-error">-270</span>
+<span class="font-mono-data text-mono-data text-error/80">ha</span>
+</div>
+<span class="font-mono-data text-mono-data text-error bg-error/10 px-2 py-0.5 rounded text-[10px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]" data-icon="trending_down">trending_down</span>
+                            -6,35%
+                        </span>
+</div>
+</div>
+<div class="map-layer-2 rounded p-3 flex flex-col">
+<span class="font-body-sm text-[10px] text-on-surface-variant mb-1 leading-tight">Area bertambah</span>
+<div class="flex items-baseline gap-1 mt-auto">
+<span class="font-headline-md text-headline-md text-primary-fixed-variant">540</span>
+<span class="font-mono-data text-mono-data text-outline text-[10px]">ha</span>
+</div>
+</div>
+<div class="map-layer-2 rounded p-3 flex flex-col">
+<span class="font-body-sm text-[10px] text-on-surface-variant mb-1 leading-tight">Area berkurang</span>
+<div class="flex items-baseline gap-1 mt-auto">
+<span class="font-headline-md text-headline-md text-error">810</span>
+<span class="font-mono-data text-mono-data text-outline text-[10px]">ha</span>
+</div>
+</div>
+</div>
+<!-- Insight List -->
+<div class="mt-4 flex flex-col gap-3">
+<h3 class="font-label-bold text-label-bold text-primary border-b border-outline-variant pb-1">INSIGHT CEPAT</h3>
+<ul class="flex flex-col gap-2 font-body-sm text-body-sm">
+<li class="flex items-start gap-2">
+<div class="w-2 h-2 rounded-full bg-error mt-1.5 shrink-0"></div>
+<span class="text-on-surface-variant">Penurunan luas vegetasi signifikan terjadi di sektor utara kota akibat perluasan lahan urban.</span>
+</li>
+<li class="flex items-start gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary mt-1.5 shrink-0"></div>
+<span class="text-on-surface-variant">Area konservasi selatan menunjukkan pertumbuhan tutupan hijau sebesar 2.1%.</span>
+</li>
+<li class="flex items-start gap-2">
+<div class="w-2 h-2 rounded-full bg-primary-fixed-dim mt-1.5 shrink-0"></div>
+<span class="text-on-surface-variant">Target pemulihan 2025 membutuhkan akselerasi di zona merah (area berkurang).</span>
+</li>
+</ul>
+</div>
+</aside>
+</div>
+
+
+</body></html>

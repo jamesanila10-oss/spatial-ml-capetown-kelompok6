@@ -1,0 +1,47 @@
+{
+  "title": "Vegetation Change Analysis · Cape Town",
+  "subtitle": "GeoAI Final Project",
+  "study_area": "Cape Town, South Africa",
+  "satellite": "Sentinel-2",
+  "classification_model": "Random Forest",
+  "trees": 100,
+  "authors": [
+    {
+      "name": "Moerice Joel Kalangit",
+      "nim": "1242002047",
+      "role": "Spatial Data Engineer & Ground Truth Specialist",
+      "jobdesk": "Penetapan wilayah studi, akuisisi Sentinel-2, cloud masking SCL, median composite, clipping ke batas Kota Cape Town. Pembuatan 360 titik ground truth seimbang untuk tahun 2024 dan 2025, termasuk penambahan 60 titik pada zona transisi spektral."
+    },
+    {
+      "name": "Achmad Taufik Alfarizy",
+      "nim": "1232002087",
+      "role": "Machine Learning Engineer",
+      "jobdesk": "Penyusunan feature stack (7 fitur), split dataset 70:30 (seed 42), pelatihan Random Forest (100 trees), klasifikasi tahun 2024 dan 2025."
+    },
+    {
+      "name": "Hafizhah Dea Az Zahrah",
+      "nim": "1232002059",
+      "role": "Evaluation & Change Analyst · Repository Manager & Technical Writer",
+      "jobdesk": "Confusion Matrix, Accuracy, Precision, Recall, F1-score, Feature Importance, Change Detection, vektorisasi hasil, ekspor GeoJSON. Turut menyusun laporan dan dokumentasi teknis."
+    },
+    {
+      "name": "Haryo Raafi Antarikso",
+      "nim": "1232002003",
+      "role": "WebGIS Developer",
+      "jobdesk": "Pengembangan WebGIS interaktif, integrasi Leaflet, dashboard, visualisasi layer, UI/UX."
+    },
+    {
+      "name": "Ahmad Rafly",
+      "nim": "1232002058",
+      "role": "Repository Manager & Technical Writer",
+      "jobdesk": "Pengelolaan GitHub repository, README, dokumentasi teknis, penyusunan laporan, koordinasi presentasi."
+    },
+    {
+      "name": "Zahrotul Mu'minati",
+      "nim": "1232002086",
+      "role": "Repository Manager & Technical Writer",
+      "jobdesk": "Pengelolaan GitHub repository, README, dokumentasi teknis, penyusunan laporan, koordinasi presentasi, dan pembuatan layout QGIS."
+    }
+  ],
+  "description": "This project analyzes vegetation changes in Cape Town between 2024 and 2025 using Sentinel-2 imagery and a Random Forest classifier. The resulting WebGIS visualizes classification outputs, vegetation change polygons, model evaluation metrics, and summary insights."
+}

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sentinel-V: Cape Town Fire Analysis - Data &amp; Processing</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#fbf8fa",
+                      "tertiary-fixed": "#6dfe9c",
+                      "surface-bright": "#fbf8fa",
+                      "surface-container": "#f0edef",
+                      "outline-variant": "#c5c6cd",
+                      "on-tertiary-container": "#00a555",
+                      "on-tertiary-fixed-variant": "#005227",
+                      "surface-container-low": "#f5f3f4",
+                      "error-container": "#ffdad6",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed": "#d8e3fb",
+                      "error": "#ba1a1a",
+                      "primary": "#091426",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#79db8d",
+                      "on-primary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "primary-fixed-dim": "#bcc7de",
+                      "on-primary-container": "#8590a6",
+                      "inverse-primary": "#bcc7de",
+                      "surface-tint": "#545f73",
+                      "on-background": "#1b1b1d",
+                      "on-secondary-fixed-variant": "#005323",
+                      "surface-container-highest": "#e4e2e3",
+                      "background": "#fbf8fa",
+                      "on-tertiary-fixed": "#00210c",
+                      "surface-dim": "#dcd9db",
+                      "on-surface-variant": "#45474c",
+                      "on-secondary-container": "#007233",
+                      "secondary-container": "#92f5a4",
+                      "secondary": "#006d30",
+                      "tertiary-fixed-dim": "#4de082",
+                      "surface-variant": "#e4e2e3",
+                      "on-surface": "#1b1b1d",
+                      "tertiary-container": "#003014",
+                      "on-secondary-fixed": "#00210a",
+                      "inverse-on-surface": "#f3f0f2",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#eae7e9",
+                      "inverse-surface": "#303032",
+                      "primary-container": "#1e293b",
+                      "outline": "#75777d",
+                      "on-primary-fixed": "#111c2d",
+                      "on-primary-fixed-variant": "#3c475a",
+                      "secondary-fixed": "#95f8a7",
+                      "tertiary": "#001907"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "nav_height": "5vh",
+                      "sidebar_analytics_width": "25%",
+                      "map_viewport_width": "55%",
+                      "gutter": "1px",
+                      "panel_padding": "1rem",
+                      "sidebar_control_width": "20%"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "mono-data": [
+                              "monospace"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "label-bold": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono-data": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-bold": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+</head>
+<body class="bg-surface text-on-surface h-screen w-screen overflow-hidden flex flex-col font-body-md">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface-dim font-headline-md text-headline-md docked full-width top-0 h-[51px] border-b border-outline-variant dark:border-outline flex justify-between items-center px-4 w-full flat no shadows z-50">
+<div class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">
+            Sentinel-V: Cape Town Fire Analysis
+        </div>
+<nav class="hidden md:flex items-center gap-6 h-full">
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors cursor-pointer transition-all duration-200 h-full flex items-center" href="#">Peta Hasil</a>
+<a class="text-primary dark:text-primary-fixed-dim border-b-2 border-primary dark:border-primary-fixed-dim pb-1 hover:text-primary dark:hover:text-primary-fixed-dim transition-colors cursor-pointer transition-all duration-200 h-full flex items-center" href="#">Data &amp; Proses</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors cursor-pointer transition-all duration-200 h-full flex items-center" href="#">Evaluasi Model</a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors cursor-pointer transition-all duration-200 h-full flex items-center" href="#">Insight Hasil</a>
+</nav>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-colors cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="hover:text-primary transition-colors cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="hover:text-primary transition-colors cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden h-[972px]">
+<!-- SideNavBar -->
+<aside class="bg-surface-container-low dark:bg-surface-container text-secondary dark:text-secondary-fixed-dim font-body-md text-body-md docked left-0 w-[20%] h-full border-r border-outline-variant dark:border-outline flat no shadows flex flex-col p-panel_padding gap-4 z-40">
+<div class="mb-4">
+<h2 class="font-label-bold text-label-bold text-on-surface uppercase tracking-wider">Control Sidebar</h2>
+<p class="text-on-surface-variant font-body-sm text-body-sm mt-1">Analysis Parameters</p>
+</div>
+<nav class="flex flex-col gap-2 flex-1">
+<button class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-highest dark:hover:bg-surface-dim transition-colors duration-150 rounded text-left">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+<span>Layers</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2 bg-secondary-container text-on-secondary-container dark:bg-secondary dark:text-on-secondary rounded-lg transition-colors duration-150 text-left">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+<span>Workflows</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-highest dark:hover:bg-surface-dim transition-colors duration-150 rounded text-left">
+<span class="material-symbols-outlined text-[20px]">history</span>
+<span>History</span>
+</button>
+<button class="flex items-center gap-3 px-3 py-2 text-on-surface-variant dark:text-outline-variant hover:bg-surface-container-highest dark:hover:bg-surface-dim transition-colors duration-150 rounded text-left">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span>Settings</span>
+</button>
+</nav>
+<button class="bg-primary text-on-primary font-label-bold text-label-bold py-3 px-4 rounded hover:bg-surface-tint transition-colors mt-auto uppercase tracking-wider w-full">
+                Execute Analysis
+            </button>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 bg-surface-container-lowest overflow-y-auto relative p-6">
+<div class="max-w-6xl mx-auto h-full flex flex-col">
+<header class="mb-8">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">Data Processing Pipeline</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Configure and monitor the random forest classification workflow for fire burn scar detection.</p>
+</header>
+<!-- Workflow Diagram Area -->
+<div class="flex-1 bg-surface-container-low border border-outline-variant rounded-xl p-8 flex flex-col items-center justify-center relative min-h-[400px]">
+<!-- SVG Background Grid -->
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(#c5c6cd 1px, transparent 1px); background-size: 20px 20px;"></div>
+<div class="flex items-center gap-4 relative z-10 w-full overflow-x-auto pb-4">
+<!-- Node 1 -->
+<div class="flex-none w-48 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col items-center text-center">
+<div class="w-10 h-10 rounded-full bg-primary-fixed text-primary flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">satellite_alt</span>
+</div>
+<h3 class="font-label-bold text-label-bold text-on-surface mb-1">Sentinel-2 SR</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">L2A Multispectral<br/>Pre-fire &amp; Post-fire</p>
+<div class="mt-3 text-xs bg-surface-container px-2 py-1 rounded text-on-surface-variant">Input Data</div>
+</div>
+<!-- Connector -->
+<div class="flex-none flex items-center justify-center w-12">
+<span class="material-symbols-outlined text-outline-variant text-2xl">arrow_forward</span>
+</div>
+<!-- Node 2 -->
+<div class="flex-none w-48 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col items-center text-center">
+<div class="w-10 h-10 rounded-full bg-tertiary-fixed text-tertiary-container flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">my_location</span>
+</div>
+<h3 class="font-label-bold text-label-bold text-on-surface mb-1">Ground Truth</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Training Polygons<br/>Burned / Unburned</p>
+<div class="mt-3 text-xs bg-surface-container px-2 py-1 rounded text-on-surface-variant">Reference</div>
+</div>
+<!-- Connector -->
+<div class="flex-none flex items-center justify-center w-12">
+<span class="material-symbols-outlined text-outline-variant text-2xl">arrow_forward</span>
+</div>
+<!-- Node 3 -->
+<div class="flex-none w-56 bg-surface-container-lowest border-2 border-primary rounded-lg p-4 shadow-sm flex flex-col items-center text-center relative">
+<!-- Active Indicator -->
+<div class="absolute -top-2 -right-2 w-4 h-4 bg-secondary rounded-full border-2 border-surface-container-lowest animate-pulse"></div>
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">forest</span>
+</div>
+<h3 class="font-label-bold text-label-bold text-on-surface mb-1">RF Model</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Random Forest<br/>100 Trees</p>
+<div class="mt-3 text-xs bg-primary-container text-on-primary-container px-2 py-1 rounded w-full">Processing... 45%</div>
+</div>
+<!-- Connector -->
+<div class="flex-none flex items-center justify-center w-12">
+<span class="material-symbols-outlined text-outline-variant text-2xl opacity-50">arrow_forward</span>
+</div>
+<!-- Node 4 -->
+<div class="flex-none w-48 bg-surface-container-lowest border border-outline-variant rounded-lg p-4 shadow-sm flex flex-col items-center text-center opacity-60">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center mb-3">
+<span class="material-symbols-outlined">query_stats</span>
+</div>
+<h3 class="font-label-bold text-label-bold text-on-surface mb-1">Change Analysis</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Delta dNBR<br/>Severity Classification</p>
+<div class="mt-3 text-xs bg-surface-container px-2 py-1 rounded text-on-surface-variant">Pending</div>
+</div>
+</div>
+</div>
+<!-- Parameters Section below Diagram -->
+<div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6">
+<h3 class="font-headline-md text-headline-md text-primary mb-4 border-b border-outline-variant pb-2">RF Parameters</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Number of Trees</span>
+<span class="font-mono-data text-mono-data text-primary">100</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Max Depth</span>
+<span class="font-mono-data text-mono-data text-primary">None</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-body-md text-body-md text-on-surface-variant">Min Samples Split</span>
+<span class="font-mono-data text-mono-data text-primary">2</span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6">
+<h3 class="font-headline-md text-headline-md text-primary mb-4 border-b border-outline-variant pb-2">Log Console</h3>
+<div class="bg-surface-container font-mono-data text-mono-data text-on-surface-variant p-4 rounded h-32 overflow-y-auto text-xs">
+<div class="text-secondary">[10:42:01] INFO: Loading Sentinel-2 imagery...</div>
+<div class="text-secondary">[10:42:05] INFO: Imagery loaded. Shape: (10980, 10980, 12)</div>
+<div class="text-secondary">[10:42:06] INFO: Loading Ground Truth polygons...</div>
+<div class="text-secondary">[10:42:08] INFO: Extracting training samples...</div>
+<div class="text-on-surface">[10:42:15] PROCESS: Initializing Random Forest Classifier (n_estimators=100)...</div>
+<div class="text-on-surface">[10:42:16] PROCESS: Fitting model... [======    ] 45%</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest dark:bg-surface-dim text-on-surface-variant dark:text-outline-variant font-body-sm text-body-sm docked bottom-0 w-full border-t border-outline-variant dark:border-outline flat no shadows flex justify-between items-center px-4 py-1 w-full z-50">
+<div class="cursor-default">
+            © 2024 Sentinel-V GeoAI. System Status: <span class="text-secondary">Operational</span>
+</div>
+<div class="flex gap-4">
+<a class="hover:underline cursor-default" href="#">Metadata</a>
+<a class="hover:underline cursor-default" href="#">API Docs</a>
+<a class="hover:underline cursor-default" href="#">Support</a>
+</div>
+</footer>
+</body></html>

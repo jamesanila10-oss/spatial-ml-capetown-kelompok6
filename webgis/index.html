@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- SEO -->
+  <title>GeoAI | Vegetation Change Analysis · Cape Town</title>
+  <meta name="description"
+    content="WebGIS dashboard for vegetation change analysis of Cape Town (2024–2025) using Sentinel-2 imagery and Random Forest classification. GeoAI Final Project." />
+  <meta name="keywords"
+    content="GeoAI, WebGIS, Cape Town, Vegetation Change, Sentinel-2, Random Forest, Leaflet, Remote Sensing" />
+  <meta property="og:title" content="GeoAI | Vegetation Change Analysis · Cape Town" />
+  <meta property="og:description"
+    content="Interactive WebGIS for Vegetation Change Analysis of Cape Town (2024–2025) using Sentinel-2 &amp; Random Forest." />
+  <meta name="theme-color" content="#10b981" />
+
+  <!-- ===== LOCAL LIBS: Fonts (CDN still OK as fallback, no SRI) ===== -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <!-- Material Symbols for Stitch UI icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+  <!-- ===== LOCAL: Font Awesome ===== -->
+  <link rel="stylesheet" href="lib/fontawesome.min.css" />
+
+  <!-- ===== LOCAL: Bootstrap 5 ===== -->
+  <link rel="stylesheet" href="lib/bootstrap.min.css" />
+
+  <!-- ===== LOCAL: Leaflet CSS ===== -->
+  <link rel="stylesheet" href="lib/leaflet.css" />
+
+  <!-- ===== LOCAL: Leaflet MiniMap CSS ===== -->
+  <link rel="stylesheet" href="lib/leaflet-minimap.min.css" />
+
+  <!-- ===== Project Stylesheet ===== -->
+  <link rel="stylesheet" href="css/style.css?v=2.1.0" />
+
+  <style>
+    /* Inline critical: Sentinel-V Stitch 3-column layout */
+    :root { --navbar-height: 51px; }
+
+    /* Prevent flash of unstyled content */
+    .app-section { display: none; }
+    .app-section.active { display: block; }
+
+    /* Map section: fixed height, no scroll — 3-column layout fills viewport */
+    #section-map {
+      height: calc(100vh - 51px);
+      overflow: hidden;
+    }
+    #section-map.active {
+      display: flex;
+      flex-direction: row;
+    }
+
+    /* Hide old sidebar; main-content spans full width and scrolls on non-map pages */
+    #sidebar { display: none !important; }
+    #main-content {
+      margin-left: 0 !important;
+      overflow-x: hidden;
+      overflow-y: auto;  /* allow scroll on Data/Model/Insights/About sections */
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ====================================================
+       LOADING OVERLAY
+       ==================================================== -->
+  <div id="loading-overlay" role="status" aria-label="Loading application">
+    <div class="loading-logo">
+      <i class="fas fa-leaf"></i>
+    </div>
+    <div class="loading-title">GeoAI Dashboard</div>
+    <div class="loading-subtitle">Vegetation Change Analysis · Cape Town</div>
+    <div class="loading-bar">
+      <div class="loading-bar-fill"></div>
+    </div>
+    <div class="loading-status" id="loading-status">Initializing…</div>
+  </div>
+
+  <!-- ====================================================
+       TOP NAVIGATION BAR
+       ==================================================== -->
+  <nav id="main-navbar" role="navigation" aria-label="Main navigation">
+    <!-- Sidebar toggle (mobile only) -->
+    <button id="sidebar-toggle" class="btn-icon" aria-label="Toggle Sidebar" title="Menu">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Brand -->
+    <div class="navbar-brand-area">
+      <div class="navbar-logo" title="GeoAI WebGIS">
+        <i class="fas fa-leaf"></i>
+      </div>
+      <div class="navbar-title">
+        <span class="title-main">Vegetation Change Analysis · Cape Town</span>
+        <span class="title-sub">GeoAI Final Project · 2024–2025</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs (from Stitch layout) -->
+    <div class="navbar-tabs">
+      <button class="nav-item-btn" data-section="home" id="nav-home">Home</button>
+      <button class="nav-item-btn active" data-section="map" id="nav-map">Peta Hasil</button>
+      <button class="nav-item-btn" data-section="data" id="nav-data">Data &amp; Proses</button>
+      <button class="nav-item-btn" data-section="model" id="nav-model">Evaluasi Model</button>
+      <button class="nav-item-btn" data-section="insights" id="nav-insights">Insight Hasil</button>
+      <button class="nav-item-btn" data-section="about" id="nav-about">About</button>
+    </div>
+
+    <!-- Spacer -->
+    <div class="navbar-spacer"></div>
+
+    <!-- Actions -->
+    <div class="navbar-actions">
+      <div class="nav-status-badge">
+        <span class="status-dot"></span>
+        <span>Live Dashboard</span>
+      </div>
+
+      <button id="theme-toggle" class="btn-icon" aria-label="Toggle Theme" title="Toggle dark/light mode">
+        <i class="fas fa-sun"></i>
+      </button>
+
+      <a href="https://github.com/jamesanila10-oss/spatial-ml-capetown-kelompok6" target="_blank" rel="noopener" class="btn-github" id="btn-github"
+        title="View on GitHub">
+        <i class="fab fa-github"></i>
+        <span>GitHub</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Mobile sidebar overlay -->
+  <div id="sidebar-overlay"></div>
+
+  <!-- ====================================================
+       APP SHELL (Sidebar + Main Content)
+       ==================================================== -->
+  <div id="app-shell">
+
+    <!-- ====================================================
+         LEFT SIDEBAR
+         ==================================================== -->
+    <aside id="sidebar" role="complementary" aria-label="Sidebar navigation">
+
+      <div class="sidebar-section-label">Navigation</div>
+
+      <nav class="sidebar-nav" aria-label="Sidebar links">
+        <!-- Home -->
+        <button class="nav-item-btn active" data-section="home" id="nav-home" aria-label="Home">
+          <div class="nav-icon"><i class="fas fa-home"></i></div>
+          <span class="nav-label">Home</span>
+        </button>
+
+        <!-- Interactive Map -->
+        <button class="nav-item-btn" data-section="map" id="nav-map" aria-label="Interactive Map">
+          <div class="nav-icon"><i class="fas fa-map-marked-alt"></i></div>
+          <span class="nav-label">Interactive Map</span>
+          <span class="nav-badge">GIS</span>
+        </button>
+
+        <!-- Data & Process -->
+        <button class="nav-item-btn" data-section="data" id="nav-data" aria-label="Data and Process">
+          <div class="nav-icon"><i class="fas fa-database"></i></div>
+          <span class="nav-label">Data &amp; Process</span>
+        </button>
+
+        <!-- Model Evaluation -->
+        <button class="nav-item-btn" data-section="model" id="nav-model" aria-label="Model Evaluation">
+          <div class="nav-icon"><i class="fas fa-flask"></i></div>
+          <span class="nav-label">Model Evaluation</span>
+          <span class="nav-badge"
+            style="background:rgba(139,92,246,0.15);color:#8b5cf6;border:1px solid rgba(139,92,246,0.3);">RF</span>
+        </button>
+
+        <!-- Insights -->
+        <button class="nav-item-btn" data-section="insights" id="nav-insights" aria-label="Insights">
+          <div class="nav-icon"><i class="fas fa-lightbulb"></i></div>
+          <span class="nav-label">Insights</span>
+        </button>
+
+        <!-- About -->
+        <button class="nav-item-btn" data-section="about" id="nav-about" aria-label="About">
+          <div class="nav-icon"><i class="fas fa-info-circle"></i></div>
+          <span class="nav-label">About</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="sidebar-version">
+          <i class="fas fa-code-branch" style="font-size:0.8rem;"></i>
+          <span>v1.0.0 · GeoAI 2025</span>
+        </div>
+        <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" aria-label="Collapse Sidebar"
+          title="Collapse Sidebar">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ====================================================
+         MAIN CONTENT
+         ==================================================== -->
+    <main id="main-content" role="main">
+
+      <!-- ==================== HOME ==================== -->
+      <section id="section-home" class="app-section" aria-labelledby="home-title">
+        <!-- Rendered by Dashboard.renderHome() -->
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading…
+        </div>
+      </section>
+
+      <!-- ==================== MAP ==================== -->
+      <section id="section-map" class="app-section" aria-labelledby="map-title">
+        <div class="stitch-dashboard-container">
+          
+          <!-- Column 1: Left Control Sidebar -->
+          <aside class="stitch-sidebar-left">
+            <div class="stitch-sidebar-header">
+              <h2>Control Sidebar</h2>
+              <p>Analysis Parameters</p>
+            </div>
+            
+            <!-- ===== FILTER PANEL (dynamically populated) ===== -->
+            <div id="map-filter-panel" class="map-filter-panel" aria-label="Class filter">
+              <div class="filter-panel-head">
+                <i class="fas fa-filter"></i>
+                <span>Loading filters…</span>
+              </div>
+            </div>
+          </aside>
+
+          <!-- Column 2: Center Map Viewport -->
+          <main class="stitch-map-viewport">
+            <div id="map-container">
+              <div id="leaflet-map"></div>
+
+              <!-- Loading indicator -->
+              <div id="map-loading-indicator" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                          background:var(--bg-glass);backdrop-filter:blur(12px);
+                          border:1px solid var(--border-color);border-radius:12px;
+                          padding:1.25rem 1.75rem;z-index:600;flex-direction:column;
+                          align-items:center;gap:0.75rem;box-shadow:var(--shadow-lg);">
+                <i class="fas fa-spinner fa-spin" style="font-size:1.5rem;color:var(--brand-primary);"></i>
+                <span style="font-size:0.85rem;color:var(--text-secondary);">Loading vegetation layer…</span>
+              </div>
+
+              <!-- Search control removed per project requirements -->
+
+              <!-- Floating FABs -->
+              <div class="map-controls-panel">
+                <button class="map-fab" id="fab-fullscreen" title="Fullscreen">
+                  <i class="fas fa-expand"></i>
+                </button>
+                <button class="map-fab" id="fab-home" title="Reset View">
+                  <i class="fas fa-home"></i>
+                </button>
+                <button class="map-fab" id="fab-zoom-layer" title="Zoom to Layer">
+                  <i class="fas fa-expand-arrows-alt"></i>
+                </button>
+                <button class="map-fab" id="fab-locate" title="Locate Me">
+                  <i class="fas fa-crosshairs"></i>
+                </button>
+                <button class="map-fab" id="fab-measure" title="Measure Tool">
+                  <i class="fas fa-ruler"></i>
+                </button>
+              </div>
+
+              <!-- ===== MEASURE TOOLBAR ===== -->
+              <div class="measure-toolbar" id="measure-toolbar">
+                <button class="measure-btn" id="measure-distance"><i class="fas fa-ruler-horizontal"></i> Distance</button>
+                <button class="measure-btn" id="measure-area"><i class="fas fa-draw-polygon"></i> Area</button>
+                <button class="measure-btn" id="measure-clear"><i class="fas fa-trash-alt"></i> Clear</button>
+                <div class="measure-result" id="measure-result">Click map to measure</div>
+              </div>
+
+              <!-- Compact legend (floating bottom-left, above info bar) -->
+              <div class="map-legend" id="map-legend">
+                <h6><i class="fas fa-list" style="margin-right:0.4rem;color:var(--brand-primary);"></i>Vegetation Legend</h6>
+                <div class="legend-item">
+                  <div class="legend-swatch" style="background:#1B5E20;"></div>
+                  <span>Vegetation 2024</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-swatch" style="background:#66BB6A;"></div>
+                  <span>Vegetation 2025</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-swatch" style="background:#00BCD4;"></div>
+                  <span>Vegetation Gain</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-swatch" style="background:#F44336;"></div>
+                  <span>Vegetation Loss</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-swatch" style="background:transparent;border:2px dashed #FFC107;"></div>
+                  <span>City Boundary</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Map Info Bar -->
+            <div class="map-info-bar">
+              <div class="map-coord-display">
+                <i class="fas fa-map-pin" style="color:var(--brand-primary);"></i>
+                <span id="map-coords">—</span>
+              </div>
+              <div class="divider-y" style="width:1px;height:16px;background:var(--border-color);margin:0 0.75rem;"></div>
+              <div id="map-hover-info" style="flex:1;">Hover over a feature for details</div>
+              <div class="divider-y" style="width:1px;height:16px;background:var(--border-color);margin:0 0.75rem;"></div>
+              <div>
+                <i class="fas fa-layer-group" style="color:var(--brand-primary);margin-right:0.35rem;"></i>
+                Features: <strong id="geojson-feature-count">—</strong>
+              </div>
+              <div class="divider-y" style="width:1px;height:16px;background:var(--border-color);margin:0 0.75rem;"></div>
+              <div>
+                <i class="fas fa-map-marked-alt" style="color:var(--brand-primary);margin-right:0.35rem;"></i>
+                Cape Town, South Africa
+              </div>
+            </div>
+          </main>
+
+          <!-- Column 3: Right Analytics Panel -->
+          <aside class="stitch-sidebar-right">
+            <div class="stitch-sidebar-header">
+              <h2>Metrics Analysis</h2>
+              <p>Vegetation Statistics</p>
+            </div>
+
+            <!-- ===== MAP INFO SUMMARY (Bento Grid) ===== -->
+            <div class="map-info-summary" id="map-info-summary">
+              <div class="metric-card col-span-2">
+                <span class="card-label">Luas vegetasi 2024</span>
+                <div class="card-val-row">
+                  <span class="card-value font-headline" id="mis-veg24">—</span>
+                </div>
+              </div>
+              <div class="metric-card col-span-2">
+                <span class="card-label">Luas vegetasi 2025</span>
+                <div class="card-val-row">
+                  <span class="card-value font-headline" id="mis-veg25">—</span>
+                </div>
+              </div>
+              <div class="metric-card col-span-2 highlight-net">
+                <span class="card-label">Perubahan bersih</span>
+                <div class="card-val-row justify-between">
+                  <span class="card-value" id="mis-net">—</span>
+                </div>
+              </div>
+              <div class="metric-card">
+                <span class="card-label">Area bertambah</span>
+                <span class="card-value text-gain" id="mis-gain">—</span>
+              </div>
+              <div class="metric-card">
+                <span class="card-label">Area berkurang</span>
+                <span class="card-value text-loss" id="mis-loss">—</span>
+              </div>
+            </div>
+
+            <!-- Quick Insights List -->
+            <div class="stitch-insights-section">
+              <h3>INSIGHT CEPAT</h3>
+              <ul>
+                <li>
+                  <span class="dot dot-loss"></span>
+                  <span class="text">Penurunan luas vegetasi signifikan terjadi di sektor utara kota akibat perluasan lahan urban.</span>
+                </li>
+                <li>
+                  <span class="dot dot-gain"></span>
+                  <span class="text">Area konservasi selatan menunjukkan pertumbuhan tutupan hijau sebesar 2.1%.</span>
+                </li>
+                <li>
+                  <span class="dot dot-primary"></span>
+                  <span class="text">Target pemulihan 2025 membutuhkan akselerasi di zona merah (area berkurang).</span>
+                </li>
+              </ul>
+            </div>
+          </aside>
+
+        </div>
+      </section>
+
+      <!-- ==================== DATA & PROCESS ==================== -->
+      <section id="section-data" class="app-section" aria-labelledby="data-title">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading…
+        </div>
+      </section>
+
+      <!-- ==================== MODEL EVALUATION ==================== -->
+      <section id="section-model" class="app-section" aria-labelledby="model-title">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading…
+        </div>
+      </section>
+
+      <!-- ==================== INSIGHTS ==================== -->
+      <section id="section-insights" class="app-section" aria-labelledby="insights-title">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading…
+        </div>
+      </section>
+
+      <!-- ==================== ABOUT ==================== -->
+      <section id="section-about" class="app-section" aria-labelledby="about-title">
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted);">
+          <i class="fas fa-spinner fa-spin" style="margin-right:0.5rem;"></i> Loading…
+        </div>
+      </section>
+
+      <!-- ====================================================
+           FOOTER (shown in all non-map sections)
+           ==================================================== -->
+      <footer id="app-footer" role="contentinfo">
+        <div class="footer-brand">
+          <i class="fas fa-leaf" style="color:var(--brand-primary);"></i>
+          <span>GeoAI WebGIS · <strong>Vegetation Change Analysis</strong></span>
+        </div>
+        <div class="footer-links">
+          <span class="footer-link" style="cursor:pointer;" onclick="App.navigate('about')">About</span>
+          <span class="footer-link" style="cursor:pointer;" onclick="App.navigate('about')">Downloads</span>
+          <a class="footer-link" href="https://github.com/jamesanila10-oss/spatial-ml-capetown-kelompok6" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <div class="footer-copy">
+          &copy; 2025 GeoAI Final Project · Cape Town, South Africa ·
+          <span style="color:var(--brand-primary);">Sentinel-2 + Random Forest</span>
+        </div>
+      </footer>
+
+    </main><!-- /#main-content -->
+  </div><!-- /#app-shell -->
+
+
+  <!-- ====================================================
+       LOCAL SCRIPTS — No CDN, no SRI failures
+       ==================================================== -->
+
+  <!-- Bootstrap 5 JS (local) -->
+  <script src="lib/bootstrap.bundle.min.js"></script>
+
+  <!-- Chart.js (local) -->
+  <script src="lib/chart.umd.min.js"></script>
+
+  <!-- Leaflet JS (local — MUST load before all Leaflet plugins) -->
+  <script src="lib/leaflet.js"></script>
+
+  <!-- Leaflet Plugins (local, AFTER leaflet.js) -->
+  <script src="lib/leaflet-minimap.min.js"></script>
+
+  <!-- georaster CDN — chained: s2 loads AFTER s1 finishes -->
+  <script>
+    (function () {
+      var s1 = document.createElement('script');
+      // georaster 1.6.0 — parses GeoTIFF binary
+      s1.src = 'https://unpkg.com/georaster@1.6.0/dist/georaster.browser.bundle.min.js';
+
+      s1.onload = function () {
+        // georaster ready — now load GeoRasterLayer (v4 — correct path)
+        var s2 = document.createElement('script');
+        s2.src = 'https://unpkg.com/georaster-layer-for-leaflet@4.1.2/dist/georaster-layer-for-leaflet.min.js';
+
+        s2.onload = function () {
+          window._georasterReady = true;
+          if (window.MapModule && typeof window.MapModule.retryRasterSetup === 'function') {
+            window.MapModule.retryRasterSetup();
+          }
+        };
+
+        s2.onerror = function () {
+          // Try jsdelivr as fallback
+          console.warn('[GeoRaster] unpkg failed — trying jsdelivr fallback…');
+          var s2b = document.createElement('script');
+          s2b.src = 'https://cdn.jsdelivr.net/npm/georaster-layer-for-leaflet@4.1.2/dist/georaster-layer-for-leaflet.min.js';
+          s2b.onload = function () {
+            window._georasterReady = true;
+            if (window.MapModule && typeof window.MapModule.retryRasterSetup === 'function') {
+              window.MapModule.retryRasterSetup();
+            }
+          };
+          s2b.onerror = function () {
+            console.warn('[GeoRaster] GeoRasterLayer CDN unavailable — raster layers disabled.');
+            if (window.MapModule && typeof window.MapModule.retryRasterSetup === 'function') {
+              window.MapModule.retryRasterSetup(); // will show "failed" rows
+            }
+          };
+          document.head.appendChild(s2b);
+        };
+
+        document.head.appendChild(s2);
+      };
+
+      s1.onerror = function () {
+        console.warn('[GeoRaster] georaster CDN failed — raster layers disabled.');
+      };
+
+      document.head.appendChild(s1);
+    })();
+  </script>
+
+  <!-- ====================================================
+       PROJECT SCRIPTS (order matters — dependencies first)
+       ==================================================== -->
+  <script src="js/utils.js?v=1.6.0"></script>
+  <script src="js/loader.js?v=1.6.0"></script>
+  <script src="js/map.js?v=1.6.6"></script>
+  <script src="js/charts.js?v=1.6.0"></script>
+  <script src="js/dashboard.js?v=1.6.0"></script>
+  <script src="js/main.js?v=1.6.0"></script>
+
+</body>
+
+</html>

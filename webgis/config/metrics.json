@@ -1,0 +1,47 @@
+﻿{
+    "accuracy": 94.21,
+    "precision": 98.04,
+    "recall": 89.29,
+    "f1_score": 93.46,
+
+    "confusion_matrix": [
+        [64, 1],
+        [6, 50]
+    ],
+
+    "training_samples": 239,
+    "testing_samples": 121,
+    "total_samples": 360,
+
+    "ground_truth": {
+        "total": 360,
+        "class1_2024": 90,
+        "class0_2024": 90,
+        "class1_2025": 90,
+        "class0_2025": 90
+    },
+
+    "seed": 42,
+    "model": "Random Forest",
+    "trees": 100,
+
+    "features": [
+        "NDVI",
+        "B2",
+        "B12",
+        "B3",
+        "B4",
+        "B8",
+        "B11"
+    ],
+
+    "feature_importance": {
+        "NDVI": 46.26,
+        "B2":   32.45,
+        "B12":  29.86,
+        "B3":   28.78,
+        "B4":   27.36,
+        "B8":   26.95,
+        "B11":  23.55
+    }
+}

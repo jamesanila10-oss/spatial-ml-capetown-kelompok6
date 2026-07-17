@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Results Insight - Sentinel-V GeoAI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#fbf8fa",
+                      "tertiary-fixed": "#6dfe9c",
+                      "surface-bright": "#fbf8fa",
+                      "surface-container": "#f0edef",
+                      "outline-variant": "#c5c6cd",
+                      "on-tertiary-container": "#00a555",
+                      "on-tertiary-fixed-variant": "#005227",
+                      "surface-container-low": "#f5f3f4",
+                      "error-container": "#ffdad6",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed": "#d8e3fb",
+                      "error": "#ba1a1a",
+                      "primary": "#091426",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#79db8d",
+                      "on-primary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "primary-fixed-dim": "#bcc7de",
+                      "on-primary-container": "#8590a6",
+                      "inverse-primary": "#bcc7de",
+                      "surface-tint": "#545f73",
+                      "on-background": "#1b1b1d",
+                      "on-secondary-fixed-variant": "#005323",
+                      "surface-container-highest": "#e4e2e3",
+                      "background": "#fbf8fa",
+                      "on-tertiary-fixed": "#00210c",
+                      "surface-dim": "#dcd9db",
+                      "on-surface-variant": "#45474c",
+                      "on-secondary-container": "#007233",
+                      "secondary-container": "#92f5a4",
+                      "secondary": "#006d30",
+                      "tertiary-fixed-dim": "#4de082",
+                      "surface-variant": "#e4e2e3",
+                      "on-surface": "#1b1b1d",
+                      "tertiary-container": "#003014",
+                      "on-secondary-fixed": "#00210a",
+                      "inverse-on-surface": "#f3f0f2",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#eae7e9",
+                      "inverse-surface": "#303032",
+                      "primary-container": "#1e293b",
+                      "outline": "#75777d",
+                      "on-primary-fixed": "#111c2d",
+                      "on-primary-fixed-variant": "#3c475a",
+                      "secondary-fixed": "#95f8a7",
+                      "tertiary": "#001907"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "nav_height": "5vh",
+                      "sidebar_analytics_width": "25%",
+                      "map_viewport_width": "55%",
+                      "gutter": "1px",
+                      "panel_padding": "1rem",
+                      "sidebar_control_width": "20%"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "mono-data": [
+                              "monospace"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "label-bold": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono-data": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-bold": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Custom scrollbar for data panels */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #e4e2e3; /* surface-variant */
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background h-screen overflow-hidden flex flex-col font-body-md antialiased">
+<!-- TopNavBar -->
+<nav class="bg-surface border-b border-outline-variant flex justify-between items-center px-4 w-full docked full-width top-0 h-[51px]">
+<div class="flex items-center gap-6">
+<span class="font-headline-md text-headline-md font-bold text-primary">Sentinel-V: Cape Town Fire Analysis</span>
+<div class="hidden md:flex gap-4">
+<a class="font-headline-md text-headline-md text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer" href="#">Peta Hasil</a>
+<a class="font-headline-md text-headline-md text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer" href="#">Data &amp; Proses</a>
+<a class="font-headline-md text-headline-md text-on-surface-variant hover:text-primary transition-colors duration-200 cursor-pointer" href="#">Evaluasi Model</a>
+<a class="font-headline-md text-headline-md text-primary border-b-2 border-primary pb-1 transition-colors duration-200 cursor-pointer" href="#">Insight Hasil</a>
+</div>
+</div>
+<div class="flex gap-4 items-center">
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:text-primary transition-colors duration-200" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:text-primary transition-colors duration-200" data-icon="settings">settings</span>
+<span class="material-symbols-outlined cursor-pointer text-on-surface-variant hover:text-primary transition-colors duration-200" data-icon="account_circle">account_circle</span>
+</div>
+</nav>
+<!-- Main Content Layout (3-Column GIS Workspace) -->
+<main class="flex-1 flex overflow-hidden w-full h-[972px]">
+<!-- SideNavBar (Control Sidebar - 20%) -->
+<aside class="bg-surface-container-low border-r border-outline-variant flex flex-col p-panel_padding gap-4 w-[20%] docked left-0 h-full overflow-y-auto shrink-0">
+<div>
+<h2 class="font-label-bold text-label-bold text-on-surface uppercase">Control Sidebar</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Analysis Parameters</p>
+</div>
+<nav class="flex flex-col gap-2 mt-4 flex-1">
+<a class="flex items-center gap-3 p-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors duration-150 rounded-DEFAULT cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span>
+<span class="font-body-md text-body-md">Layers</span>
+</a>
+<a class="flex items-center gap-3 p-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors duration-150 rounded-DEFAULT cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-body-md text-body-md">Workflows</span>
+</a>
+<a class="flex items-center gap-3 p-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors duration-150 rounded-DEFAULT cursor-pointer" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-body-md text-body-md">History</span>
+</a>
+<a class="flex items-center gap-3 p-2 text-on-surface-variant hover:bg-surface-container-highest transition-colors duration-150 rounded-DEFAULT cursor-pointer mt-auto" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-body-md text-body-md">Settings</span>
+</a>
+</nav>
+<button class="w-full bg-secondary text-on-secondary font-label-bold text-label-bold py-2 px-4 rounded-DEFAULT uppercase tracking-wider hover:opacity-90 transition-opacity">Execute Analysis</button>
+</aside>
+<!-- Interactive Map Canvas / Main Data Area (55% -> expanded for insights context, usually center viewport) -->
+<section class="flex-1 bg-surface relative overflow-hidden flex flex-col p-6 gap-6">
+<header class="mb-4">
+<h1 class="font-headline-lg text-headline-lg text-primary">Analysis Insights: Cape Town Urban-Wildland Interface</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-2">Comprehensive breakdown of post-fire vegetation recovery and high-risk zone identification based on Sentinel-2 satellite imagery delta analysis.</p>
+</header>
+<!-- Bento Grid Layout for Insights -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 flex-1 overflow-y-auto pr-2 pb-16">
+<!-- Insight Card 1: Major Findings -->
+<div class="col-span-1 lg:col-span-2 bg-surface-container-lowest border border-outline-variant p-5 rounded-DEFAULT flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary" data-icon="landscape">landscape</span>
+<h3 class="font-headline-md text-headline-md text-primary">Urban-Wildland Interface Vulnerability</h3>
+</div>
+<span class="bg-error-container text-on-error-container font-label-bold text-label-bold px-2 py-1 rounded-sm uppercase">High Priority</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                        Analysis reveals a critical 15% reduction in protective vegetation buffers along the eastern Table Mountain slopes bordering residential zones. The loss of deep-rooted flora significantly increases the risk of secondary landslide events during the upcoming rainy season. Immediate intervention is recommended for the Vredehoek perimeter.
+                    </p>
+<div class="mt-auto pt-4 border-t border-outline-variant flex gap-4">
+<div class="flex flex-col">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Affected Area</span>
+<span class="font-mono-data text-mono-data text-primary">342 Hectares</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Confidence</span>
+<span class="font-mono-data text-mono-data text-secondary">94.2%</span>
+</div>
+</div>
+</div>
+<!-- Insight Card 2: Green Space Potential -->
+<div class="bg-surface-container-lowest border border-outline-variant p-5 rounded-DEFAULT flex flex-col gap-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-tertiary-fixed-dim" data-icon="forest">forest</span>
+<h3 class="font-headline-md text-headline-md text-primary">Recovery Potential</h3>
+</div>
+<div class="flex-1 flex justify-center items-center relative min-h-[120px]">
+<!-- Abstract Data Visualization Placeholder -->
+<div class="w-full h-full bg-cover bg-center opacity-80 rounded-sm" data-alt="A clean, minimalist data visualization graphic showing a circular progression chart. The chart is rendered in precise, corporate style using shades of dark indigo and vibrant green against a crisp white background. It represents vegetative recovery stages with clear, high-contrast segmented arcs and delicate grid lines, conveying a sense of scientific accuracy and environmental monitoring." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAU2NOU0V6hGKJ9EFS-Gr-lk3oNUImHC8zd32MlA8r2x9jOtwz7-t7pJnbBS_L-tu6X6BMAhakonnjEUGvFdgjrMit_OZ-RHhws5iumCTNFgH0QAfFeOkn_mZ-MQhBPYDu1ihwXqyJa_wtFgwIHvGr6GORig-DZxpKg_2byrpVudLC_V4x_jQcpOKBlKhcyndw7AOtnYTDLgOTzxZvegsnbRdyZePf6mNCOD5CxGQikmHYqj5Zs9EOfb0kfauUMAgdxgTOiDuENgT1J')"></div>
+</div>
+<div class="flex justify-between items-end mt-2">
+<div>
+<span class="block font-label-bold text-label-bold text-on-surface-variant uppercase">Natural Regen</span>
+<span class="block font-headline-lg text-headline-lg text-primary">68%</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary flex items-center"><span class="material-symbols-outlined text-sm mr-1" data-icon="trending_up">trending_up</span>+4% MoM</span>
+</div>
+</div>
+<!-- Insight Card 3: Field Validation Maps -->
+<div class="col-span-1 lg:col-span-3 bg-surface-container-lowest border border-outline-variant p-5 rounded-DEFAULT flex flex-col md:flex-row gap-6">
+<div class="flex-1 flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-error" data-icon="warning">warning</span>
+<h3 class="font-headline-md text-headline-md text-primary">Field Validation Recommendations (Priority Red Zones)</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                            The anomaly detection model has isolated three contiguous zones exhibiting atypical spectral signatures indicative of subsurface smoldering or severe soil degradation. Ground teams must prioritize these coordinates within the next 48 hours to validate severity and deploy stabilization mesh.
+                        </p>
+<ul class="flex flex-col gap-2 mt-2 font-mono-data text-mono-data text-on-surface">
+<li class="flex justify-between items-center py-1 border-b border-surface-variant">
+<span>Zone Alpha (South Ridge)</span>
+<span class="bg-error text-on-error px-2 py-0.5 rounded-sm">Critical</span>
+</li>
+<li class="flex justify-between items-center py-1 border-b border-surface-variant">
+<span>Zone Beta (Gorge Inlet)</span>
+<span class="bg-surface-tint text-on-primary px-2 py-0.5 rounded-sm">Elevated</span>
+</li>
+<li class="flex justify-between items-center py-1 border-b border-surface-variant">
+<span>Zone Gamma (Lower Plateau)</span>
+<span class="bg-surface-tint text-on-primary px-2 py-0.5 rounded-sm">Elevated</span>
+</li>
+</ul>
+</div>
+<div class="flex-1 relative min-h-[200px] border border-outline-variant rounded-sm overflow-hidden">
+<img class="w-full h-full object-cover absolute inset-0" data-alt="A highly detailed satellite map crop of a mountainous coastal region, resembling Cape Town. The map is overlaid with a stark, technical data visualization interface showing specific red 'hotspot' zones highlighting severe terrain loss. The aesthetic is clinical and scientific, using a muted topographic base map with intense, glowing red and indigo digital overlays indicating priority zones for field validation." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSfpESNKIAv_-PZR9JYjZAzd-PePEe_axhqxN5HZnxhxPKfftnqwP2fZrx_nw60q3_zB2iOQmF__Wgdor57LnsVNXKXQiyAvtMi72wvxa00FERTnqbs4OLDIgeYsDOuDn7LT3H4KI1HDgHcqrETxGxA5bP3xF7vXqFti0Ns9HnDPaZHaw3f9PU79lQKVz9qOeC--zIhk0O468BVs5kPJqeHuDWrfl9mHKBXdm0iaGP5lKRkARqJI7fbV2s9k_cxle_tZ3vQR9neuze"/>
+<!-- UI overlay on map -->
+<div class="absolute top-2 left-2 bg-surface-container-lowest/90 backdrop-blur-sm border border-outline-variant p-2 rounded-sm">
+<span class="font-label-bold text-label-bold text-primary uppercase">NDVI Delta Overlay</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Analytics Panel (Right Sidebar - 25% - Contextual for Insights) -->
+<aside class="w-[25%] bg-surface-container-low border-l border-outline-variant flex flex-col shrink-0">
+<div class="p-4 border-b border-outline-variant">
+<h2 class="font-label-bold text-label-bold text-on-surface uppercase">Summary Metrics</h2>
+</div>
+<div class="p-4 flex flex-col gap-4 overflow-y-auto">
+<!-- Metric Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-3 rounded-sm">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Total Area Assessed</span>
+<div class="font-headline-lg text-headline-lg text-primary mt-1">1,240 <span class="text-sm font-normal text-on-surface-variant">ha</span></div>
+</div>
+<!-- Metric Card -->
+<div class="bg-surface-container-lowest border border-outline-variant p-3 rounded-sm">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Severe Burn Scar</span>
+<div class="font-headline-lg text-headline-lg text-primary mt-1">412 <span class="text-sm font-normal text-on-surface-variant">ha</span></div>
+<div class="font-body-sm text-body-sm text-error mt-1 flex items-center"><span class="material-symbols-outlined text-[14px] mr-1" data-icon="warning">warning</span> 33% of total area</div>
+</div>
+<!-- Confusion Matrix Mini -->
+<div class="mt-4">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase mb-2 block">Model Accuracy (Validation)</span>
+<div class="border border-outline-variant rounded-sm overflow-hidden text-center font-mono-data text-mono-data">
+<div class="grid grid-cols-3 bg-primary text-on-primary border-b border-outline-variant">
+<div class="p-1 border-r border-outline-variant">n=450</div>
+<div class="p-1 border-r border-outline-variant">Pred: Burn</div>
+<div class="p-1">Pred: Intact</div>
+</div>
+<div class="grid grid-cols-3 bg-surface-container-lowest border-b border-outline-variant">
+<div class="p-1 border-r border-outline-variant bg-surface-variant font-label-bold">True: Burn</div>
+<div class="p-1 border-r border-outline-variant bg-secondary-fixed text-primary">204</div>
+<div class="p-1 bg-error-container text-on-error-container">12</div>
+</div>
+<div class="grid grid-cols-3 bg-surface-container-lowest">
+<div class="p-1 border-r border-outline-variant bg-surface-variant font-label-bold">True: Intact</div>
+<div class="p-1 border-r border-outline-variant bg-error-container text-on-error-container">8</div>
+<div class="p-1 bg-secondary-fixed text-primary">226</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest border-t border-outline-variant flex justify-between items-center px-4 py-1 w-full docked bottom-0 z-50">
+<span class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Sentinel-V GeoAI. System Status: Operational</span>
+<div class="flex gap-4">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:underline cursor-default" href="#">Metadata</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:underline cursor-default" href="#">API Docs</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:underline cursor-default" href="#">Support</a>
+</div>
+</footer>
+</body></html>

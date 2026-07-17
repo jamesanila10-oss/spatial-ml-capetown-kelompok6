@@ -1,0 +1,20 @@
+# IDEs and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Local Environment / System Files
+.DS_Store
+Thumbs.db
+
+# Agent Logs and Artifacts
+.gemini/
+.agents/
+walkthrough.md
+live_run_report.md
+task.md
+implementation_plan.md

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Model Evaluation - Sentinel-V GeoAI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#fbf8fa",
+                      "tertiary-fixed": "#6dfe9c",
+                      "surface-bright": "#fbf8fa",
+                      "surface-container": "#f0edef",
+                      "outline-variant": "#c5c6cd",
+                      "on-tertiary-container": "#00a555",
+                      "on-tertiary-fixed-variant": "#005227",
+                      "surface-container-low": "#f5f3f4",
+                      "error-container": "#ffdad6",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed": "#d8e3fb",
+                      "error": "#ba1a1a",
+                      "primary": "#091426",
+                      "on-secondary": "#ffffff",
+                      "secondary-fixed-dim": "#79db8d",
+                      "on-primary": "#ffffff",
+                      "on-error": "#ffffff",
+                      "primary-fixed-dim": "#bcc7de",
+                      "on-primary-container": "#8590a6",
+                      "inverse-primary": "#bcc7de",
+                      "surface-tint": "#545f73",
+                      "on-background": "#1b1b1d",
+                      "on-secondary-fixed-variant": "#005323",
+                      "surface-container-highest": "#e4e2e3",
+                      "background": "#fbf8fa",
+                      "on-tertiary-fixed": "#00210c",
+                      "surface-dim": "#dcd9db",
+                      "on-surface-variant": "#45474c",
+                      "on-secondary-container": "#007233",
+                      "secondary-container": "#92f5a4",
+                      "secondary": "#006d30",
+                      "tertiary-fixed-dim": "#4de082",
+                      "surface-variant": "#e4e2e3",
+                      "on-surface": "#1b1b1d",
+                      "tertiary-container": "#003014",
+                      "on-secondary-fixed": "#00210a",
+                      "inverse-on-surface": "#f3f0f2",
+                      "on-error-container": "#93000a",
+                      "surface-container-high": "#eae7e9",
+                      "inverse-surface": "#303032",
+                      "primary-container": "#1e293b",
+                      "outline": "#75777d",
+                      "on-primary-fixed": "#111c2d",
+                      "on-primary-fixed-variant": "#3c475a",
+                      "secondary-fixed": "#95f8a7",
+                      "tertiary": "#001907"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "nav_height": "5vh",
+                      "sidebar_analytics_width": "25%",
+                      "map_viewport_width": "55%",
+                      "gutter": "1px",
+                      "panel_padding": "1rem",
+                      "sidebar_control_width": "20%"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "mono-data": [
+                              "monospace"
+                      ],
+                      "headline-lg": [
+                              "Inter"
+                      ],
+                      "body-md": [
+                              "Inter"
+                      ],
+                      "headline-md": [
+                              "Inter"
+                      ],
+                      "label-bold": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "mono-data": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-md": [
+                              "18px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-bold": [
+                              "11px",
+                              {
+                                      "lineHeight": "14px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface h-screen flex flex-col overflow-hidden">
+<!-- Top Navigation -->
+<header class="bg-surface flex justify-between items-center px-4 w-full h-[51px] border-b border-outline-variant shrink-0">
+<div class="font-headline-md text-headline-md font-bold text-primary">Sentinel-V: Cape Town Fire Analysis</div>
+<nav class="hidden md:flex h-full items-end gap-6">
+<a class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer transition-all duration-200 pb-1 font-body-md text-body-md" href="#">Peta Hasil</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer transition-all duration-200 pb-1 font-body-md text-body-md" href="#">Data &amp; Proses</a>
+<a class="text-primary border-b-2 border-primary pb-1 font-body-md text-body-md" href="#">Evaluasi Model</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors cursor-pointer transition-all duration-200 pb-1 font-body-md text-body-md" href="#">Insight Hasil</a>
+</nav>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="notifications">notifications</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="settings">settings</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined" data-icon="account_circle">account_circle</span></button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Control Sidebar -->
+<aside class="bg-surface-container-low flex flex-col p-panel_padding gap-4 w-[20%] border-r border-outline-variant shrink-0 overflow-y-auto">
+<div>
+<h2 class="font-label-bold text-label-bold text-on-surface uppercase mb-1">Control Sidebar</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Analysis Parameters</p>
+</div>
+<nav class="flex flex-col gap-2 mt-4">
+<a class="flex items-center gap-3 p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors duration-150 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="layers">layers</span> Layers
+                </a>
+<a class="flex items-center gap-3 p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors duration-150 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span> Workflows
+                </a>
+<a class="flex items-center gap-3 p-2 rounded-lg bg-secondary-container text-on-secondary-container rounded-lg font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span> History
+                </a>
+<a class="flex items-center gap-3 p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-highest transition-colors duration-150 font-body-md text-body-md" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span> Settings
+                </a>
+</nav>
+<div class="mt-auto pt-4">
+<button class="w-full bg-primary text-on-primary py-2 rounded font-label-bold text-label-bold hover:opacity-90 transition-opacity">Execute Analysis</button>
+</div>
+</aside>
+<!-- Main Content Area (Evaluation Canvas) -->
+<main class="flex-1 bg-surface-container-lowest p-6 overflow-y-auto">
+<header class="mb-8">
+<h1 class="font-headline-lg text-headline-lg text-primary mb-2">Model Performance Evaluation</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Detailed breakdown of random forest classifier metrics for Cape Town fire scar detection.</p>
+</header>
+<!-- Metrics Grid -->
+<section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+<!-- Accuracy -->
+<div class="bg-surface-container-low border border-outline-variant p-4 rounded-lg flex flex-col justify-between">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Accuracy</span>
+<span class="material-symbols-outlined text-outline" style="font-size: 16px;">fact_check</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-primary">75.6%</span>
+<span class="font-mono-data text-mono-data text-on-tertiary-container bg-secondary-container px-1 py-0.5 rounded text-[10px]">+2.1%</span>
+</div>
+</div>
+<!-- Precision -->
+<div class="bg-surface-container-low border border-outline-variant p-4 rounded-lg flex flex-col justify-between">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Precision</span>
+<span class="material-symbols-outlined text-outline" style="font-size: 16px;">my_location</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-primary">81.1%</span>
+<span class="font-mono-data text-mono-data text-on-tertiary-container bg-secondary-container px-1 py-0.5 rounded text-[10px]">+1.5%</span>
+</div>
+</div>
+<!-- Recall -->
+<div class="bg-surface-container-low border border-outline-variant p-4 rounded-lg flex flex-col justify-between">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">Recall</span>
+<span class="material-symbols-outlined text-outline" style="font-size: 16px;">assignment_returned</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-primary">66.7%</span>
+<span class="font-mono-data text-mono-data text-error bg-error-container px-1 py-0.5 rounded text-[10px]">-0.4%</span>
+</div>
+</div>
+<!-- F1 Score -->
+<div class="bg-surface-container-low border border-outline-variant p-4 rounded-lg flex flex-col justify-between">
+<div class="flex justify-between items-center mb-2">
+<span class="font-label-bold text-label-bold text-on-surface-variant uppercase">F1-score</span>
+<span class="material-symbols-outlined text-outline" style="font-size: 16px;">functions</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-primary">73.3%</span>
+<span class="font-mono-data text-mono-data text-on-tertiary-container bg-secondary-container px-1 py-0.5 rounded text-[10px]">+0.8%</span>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+<!-- Confusion Matrix -->
+<section class="bg-surface-container-low border border-outline-variant p-6 rounded-lg flex flex-col">
+<h3 class="font-headline-md text-headline-md text-primary mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined">grid_on</span> Confusion Matrix
+                    </h3>
+<div class="flex-1 flex items-center justify-center">
+<div class="relative w-full max-w-sm">
+<!-- Y-axis label -->
+<div class="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 font-label-bold text-label-bold text-on-surface-variant">True Class</div>
+<table class="w-full border-collapse border border-outline-variant font-mono-data text-mono-data text-center">
+<thead>
+<tr>
+<th class="p-2 border border-outline-variant bg-surface-container"></th>
+<th class="p-2 border border-outline-variant bg-primary text-on-primary" colspan="2">Predicted Class</th>
+</tr>
+<tr>
+<th class="p-2 border border-outline-variant bg-surface-container"></th>
+<th class="p-2 border border-outline-variant bg-surface-container-high font-body-sm text-body-sm">Unburned (0)</th>
+<th class="p-2 border border-outline-variant bg-surface-container-high font-body-sm text-body-sm">Burned (1)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th class="p-2 border border-outline-variant bg-surface-container-high text-right font-body-sm text-body-sm pr-4 whitespace-nowrap">Unburned (0)</th>
+<!-- True Negative (High opacity primary) -->
+<td class="p-4 border border-outline-variant bg-primary-fixed text-primary font-bold text-lg">15,234</td>
+<!-- False Positive (Low opacity error/warning) -->
+<td class="p-4 border border-outline-variant bg-surface">2,451</td>
+</tr>
+<tr>
+<th class="p-2 border border-outline-variant bg-surface-container-high text-right font-body-sm text-body-sm pr-4 whitespace-nowrap">Burned (1)</th>
+<!-- False Negative -->
+<td class="p-4 border border-outline-variant bg-surface">1,892</td>
+<!-- True Positive (Medium opacity primary) -->
+<td class="p-4 border border-outline-variant bg-primary-fixed-dim text-primary font-bold text-lg">12,670</td>
+</tr>
+</tbody>
+</table>
+<div class="text-center mt-2 font-label-bold text-label-bold text-on-surface-variant">N = 32,247 Pixels Evaluated</div>
+</div>
+</div>
+</section>
+<!-- ROC Curve Mockup -->
+<section class="bg-surface-container-low border border-outline-variant p-6 rounded-lg flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+<span class="material-symbols-outlined">monitoring</span> Receiver Operating Characteristic (ROC)
+                        </h3>
+<span class="font-mono-data text-mono-data text-primary bg-primary-fixed px-2 py-1 rounded">AUC = 0.84</span>
+</div>
+<div class="flex-1 bg-surface border border-outline-variant rounded relative flex items-center justify-center min-h-[300px]">
+<!-- Abstract representation of a chart -->
+<div class="absolute inset-4 border-l border-b border-outline-variant flex items-end">
+<div class="absolute -bottom-6 left-1/2 -translate-x-1/2 font-label-bold text-label-bold text-on-surface-variant">False Positive Rate</div>
+<div class="absolute -left-8 top-1/2 -translate-y-1/2 -rotate-90 font-label-bold text-label-bold text-on-surface-variant">True Positive Rate</div>
+<!-- Random Guess Line -->
+<div class="w-full h-full border-t border-r border-dashed border-outline-variant opacity-50 relative pointer-events-none">
+<div class="absolute bottom-0 left-0 w-full h-full border-t-2 border-dashed border-outline origin-bottom-left -rotate-45 transform scale-x-[1.414]"></div>
+</div>
+<!-- ROC Curve Line (Mocked via SVG path) -->
+<svg class="absolute bottom-0 left-0 w-full h-full overflow-visible pointer-events-none" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M 0 100 Q 10 50 40 20 T 100 0" fill="none" stroke="#091426" stroke-width="2" vector-effect="non-scaling-stroke"></path>
+<path d="M 0 100 Q 10 50 40 20 T 100 0 L 100 100 Z" fill="#d8e3fb" fill-opacity="0.3"></path>
+</svg>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-surface-container-lowest flex justify-between items-center px-4 py-1 w-full border-t border-outline-variant shrink-0">
+<div class="font-body-sm text-body-sm text-on-surface-variant">© 2024 Sentinel-V GeoAI. System Status: Operational</div>
+<nav class="flex gap-4">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:underline cursor-default" href="#">Metadata</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:underline cursor-default" href="#">API Docs</a>
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:underline cursor-default" href="#">Support</a>
+</nav>
+</footer>
+</body></html>

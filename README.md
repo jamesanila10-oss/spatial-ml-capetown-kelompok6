@@ -1,176 +1,194 @@
-# GeoAI WebGIS — Vegetation Change Analysis of Cape Town (2024–2025)
+# Klasifikasi dan Deteksi Perubahan Vegetasi Kota Cape Town (2024–2025)
 
-[![Leaflet](https://img.shields.io/badge/Leaflet-1.9.4-green?logo=leaflet&logoColor=white)](https://leafletjs.com)
-[![Chart.js](https://img.shields.io/badge/Chart.js-4.4.1-ff6384?logo=chart.js&logoColor=white)](https://www.chartjs.org)
-[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3.2-7952b3?logo=bootstrap&logoColor=white)](https://getbootstrap.com)
-[![License](https://img.shields.io/badge/License-Academic-blue)](./LICENSE)
+Repositori ini menyimpan seluruh kode, data spasial, hasil analisis, dan laporan akhir proyek pemetaan tutupan vegetasi Kota Cape Town, Afrika Selatan. Proyek menggunakan citra Sentinel-2, algoritma Random Forest di Google Earth Engine, dan disajikan melalui WebGIS interaktif.
 
-A production-quality, responsive WebGIS application and dashboard built for analyzing wildfire-driven and anthropogenic vegetation changes in Cape Town, South Africa, between 2024 and 2025. This project uses Sentinel-2 multispectral imagery and a supervised Random Forest classifier to map land cover transitions.
+**Mata Kuliah:** Maha Data & Kapita Selekta Sistem Informasi
 
----
+**Dosen:** Zakiul Fahmi Jailani, S.Kom, MSc
 
-## 🎯 Objectives & Study Area
+**Program Studi:** Sistem Informasi — Fakultas Teknik dan Ilmu Komputer, Universitas Bakrie
 
-### Project Objectives
-1.  **Map Vegetation Cover:** Classify vegetation and non-vegetation land cover classes across Cape Town for the years 2024 and 2025 using Sentinel-2 MSI median composites.
-2.  **Detect Land Cover Change:** Perform post-classification change detection to identify areas of vegetation loss, vegetation gain, permanent vegetation, and permanent non-vegetation.
-3.  **Evaluate Model Performance:** Train a Random Forest classifier (100 trees) on ground-truth points and validate results using independent testing samples to measure Accuracy, Precision, Recall, and F1-score.
-4.  **Visualize through WebGIS:** Build an interactive, client-side WebGIS application to display geospatial layers, summary statistics, and model performance metrics dynamically.
-
-### Study Area: Cape Town, South Africa
-*   **Geographic Focus:** Metropolitan Municipality of Cape Town.
-*   **Ecology:** Home to the megadiverse and fire-prone Cape Floristic Region (Fynbos biome).
-*   **Significance:** Wildfires during summer seasons frequently burn large swaths of fynbos shrubland and commercial plantations, making rapid remote-sensing change detection critical for rehabilitation and hazard planning.
+**Semester:** Genap 2025/2026
 
 ---
 
-## 🗺️ Live Features
+## Anggota Kelompok 6
 
-| Feature | Description |
-|---------|-------------|
-| 🌍 **Interactive Map** | Leaflet.js with 4 basemaps (Esri Imagery, OSM, Esri Streets, CartoDB Dark). |
-| 🌿 **Vegetation Layer** | High-performance GeoJSON display categorized by change codes, with interactive popup tooltips and hover highlights. |
-| 🔍 **Search Control** | Integrated Nominatim-based location geocoding for flying directly to specific addresses or districts. |
-| 📏 **Measurement Tool** | Custom distance and area calculators directly embedded in the map UI. |
-| 🎛️ **Opacity Slider & Layer Filters** | Fine-grained transparency adjustments and class visibility toggles in a floating filter panel. |
-| 📊 **Model Metrics Dashboard** | Confusion matrix grid, metrics radar, classification distribution pie chart, and progress bars. |
-| 📈 **Insights & Trends** | Interactive donut charts, comparison bar charts, summary tables, and auto-generated analytical findings. |
-| 🌙 **Theme Toggles** | Dark and light glassmorphism styles with persistent state storage. |
-| 📱 **Responsive Design** | Collapsible sidebar and responsive grid layout adjusting seamlessly from mobile viewports to ultra-wide displays. |
+| Nama | NIM | Peran |
+|---|---|---|
+| Moerice Joel Kalangit | 1242002047 | Spatial Data Engineer & Ground Truth Specialist |
+| Achmad Taufik Alfarizy | 1232002087 | Machine Learning Engineer |
+| Hafizhah Dea Az Zahrah | 1232002059 | Model Evaluation & Change Analyst · Repository Manager & Technical Writer |
+| Haryo Raafi Antarikso | 1232002003 | WebGIS Developer |
+| Ahmad Rafly | 1232002058 | Repository Manager & Technical Writer |
+| Zahrotul Mu'minati | 1232002086 | Repository Manager & Technical Writer |
 
 ---
 
-## 📸 Screenshots & Outputs
+## Ringkasan Proyek
 
-### Land Cover Classification (2024)
-![Classification 2024](./results/classification2024.png)
+| Aspek | Keterangan |
+|---|---|
+| Wilayah studi | Kota Cape Town, Afrika Selatan |
+| Objek target | Vegetasi (biner: kelas 1 = vegetasi, kelas 0 = non-vegetasi) |
+| Periode analisis | 2024 vs 2025 |
+| Sumber data | Sentinel-2 Surface Reflectance Harmonized (COPERNICUS/S2_SR_HARMONIZED) |
+| Resolusi | 10 m |
+| Platform | Google Earth Engine + WebGIS (Leaflet.js) |
 
-### Land Cover Classification (2025)
-![Classification 2025](./results/classification2025.png)
-
-### Vegetation Change Map (2024–2025)
-![Vegetation Change Map](./results/change_map.png)
+Cape Town dipilih karena vegetasi endemik fynbos di kawasan ini sangat rentan terhadap kebakaran lahan. Kondisi kemarau panjang pada pertengahan 2024 memperparah risiko kebakaran, dan periode 2024–2025 mencatat sejumlah kejadian kebakaran besar termasuk di kawasan Table Mountain National Park pada Februari dan April 2025.
 
 ---
 
-## 🏗️ Project Structure
+## Metodologi
+
+| Tahap | Konfigurasi |
+|---|---|
+| Rentang komposit | 1 Jan – 31 Des (identik untuk kedua tahun) |
+| Filter awan (metadata) | CLOUDY_PIXEL_PERCENTAGE < 20% |
+| Cloud masking piksel | SCL — exclude kelas 3 (shadow), 8, 9 (awan), 10 (cirrus) |
+| Metode komposit | Median composite |
+| Feature stack | 7 fitur: B2, B3, B4, B8, B11, B12, NDVI |
+| Ground truth | 360 titik (90 vegetasi + 90 non-vegetasi per tahun) |
+| Split | 70:30 melalui kode, seed tetap = 42 (239 training / 121 testing) |
+| Model | Random Forest, 100 trees satu model untuk kedua tahun |
+
+**Alur:** Sentinel-2 → Cloud Masking (SCL) → Median Composite → Feature Stack → Ground Truth → Split 70:30 → Random Forest → Evaluasi APRF → Klasifikasi 2024 & 2025 → Change Detection → WebGIS
+
+---
+
+## Performa Model
+
+Evaluasi dilakukan secara independen menggunakan 121 titik testing yang tidak pernah dilibatkan dalam pelatihan model.
+
+**Confusion Matrix (n = 121)**
+
+| | Prediksi: Non-vegetasi (0) | Prediksi: Vegetasi (1) |
+|---|---|---|
+| **Aktual: Non-vegetasi (0)** | TN = 64 | FP = 1 |
+| **Aktual: Vegetasi (1)** | FN = 6 | TP = 50 |
+
+**Metrik APRF (kelas target = vegetasi)**
+
+| Metrik | Nilai |
+|---|---|
+| Accuracy | 94,21% |
+| Precision | 98,04% |
+| Recall | 89,29% |
+| F1-Score | 93,46% |
+
+**Feature importance:** NDVI merupakan prediktor paling dominan (46,26), diikuti B2 (32,45) dan B12 (29,86).
+
+**Catatan:** Ground truth disusun dua tahap. Tahap pertama menghasilkan 300 titik dengan precision yang sangat tinggi, mengindikasikan sampel non-vegetasi didominasi objek yang mudah dibedakan. Tahap kedua menambahkan 60 titik pada zona transisi spektral (area bekas terbakar bertunggul, lereng bertutup bayangan, vegetasi jarang) tanpa menghapus titik lama. Penurunan metrik setelah penambahan tersebut mencerminkan pengujian model pada kondisi yang lebih menantang dan realistis.
+
+---
+
+## Hasil Deteksi Perubahan
+
+| Indikator | Nilai |
+|---|---|
+| Luas vegetasi 2024 | 105.930,99 ha (43,1% luas kota) |
+| Luas vegetasi 2025 | 86.749,17 ha (35,3% luas kota) |
+| Area bertambah (Gain) | 4.538,16 ha |
+| Area berkurang (Loss) | 23.719,99 ha |
+| Tetap vegetasi | 82.211,01 ha |
+| **Perubahan bersih (Net Change)** | **−19.181,82 ha (−18,1%)** |
+| Luas total administrasi kota | 245.597,61 ha |
+
+Area loss lebih dari lima kali lebih luas dibanding area gain. Penyusutan terkonsentrasi di kawasan lereng Table Mountain, wilayah utara Cape Town, dan semenanjung selatan (Cape Point) konsisten dengan rangkaian kebakaran vegetasi sepanjang 2024–2025. Interpretasi kausal terhadap kebakaran merupakan indikasi berdasarkan konteks, bukan kesimpulan yang telah diverifikasi lapangan.
+
+---
+
+## Aplikasi WebGIS
+
+**Tautan:** https://jamesanila10-oss.github.io/spatial-ml-capetown-kelompok6/webgis/#map 
+
+WebGIS interaktif terdiri atas 4 tab:
+
+1. **Peta Hasil:** basemap, batas kota, vegetasi 2024, vegetasi 2025, gain, loss, legenda, layer control, popup informasi
+2. **Data & Proses:** sumber data, parameter preprocessing, ground truth, split, seed, konfigurasi model, diagram alur
+3. **Evaluasi Model:** jumlah training/testing, confusion matrix, metrik APRF, interpretasi FP/FN, keterbatasan
+4. **Insight Hasil:** ringkasan luas dan perubahan, lokasi perubahan terbesar, pola distribusi, kemungkinan penyebab, rekomendasi
+
+---
+
+## Struktur Folder
 
 ```
-GeoAI-CapeTown-WebGIS/
-├── index.html               # Single-page application shell
-├── css/
-│   └── style.css            # Full design system (custom variables, dark/light mode, glassmorphism)
-├── js/
-│   ├── utils.js             # Formatting, math, and chart-utility functions
-│   ├── loader.js            # Config data bootstrap (asynchronously loads metrics, stats, and project JSONs)
-│   ├── map.js               # Leaflet map, basemaps, search, measurement, and GeoJSON layer groups
-│   ├── charts.js            # Chart.js renderers (radar, donut, horizontal comparison, pie charts)
-│   ├── dashboard.js         # Modular HTML generators for all 5 navigation tabs
-│   └── main.js              # Application coordinator, routing, theme initialization, and sidebar event listeners
-├── assets/
-│   └── workflow.png         # GEE processing pipeline diagram
-├── config/
-│   ├── metrics.json         # RF model training parameters and performance scores
-│   ├── statistics.json      # Area change statistics (hectares and percentages)
-│   └── project_info.json    # Project metadata, study area, and authors list
+spatial-ml-capetown-kelompok6/
+├── README.md
+├── gee/
+│   └── script_capetown_final.js      # Pipeline lengkap GEE
 ├── data/
-│   ├── Classification_CapeTown_2024.tif   # 2024 land classification raster (3.7 MB)
-│   ├── Classification_CapeTown_2025.tif   # 2025 land classification raster (3.5 MB)
-│   └── Perubahan_Vegetasi_CapeTown_2024_2025.geojson  # Change polygon vectors (42 MB)
+│   ├── GroundTruth_CapeTown_360.csv  # 360 titik ground truth
+│   └── boundary_cape_town.geojson    # Batas administrasi kota
 ├── results/
-│   ├── classification2024.png             # Cartographic map export for 2024
-│   ├── classification2025.png             # Cartographic map export for 2025
-│   └── change_map.png                     # Cartographic map export for vegetation change
-└── README.md
+│   ├── Vegetasi_CapeTown_2024.geojson
+│   ├── Vegetasi_CapeTown_2025.geojson
+│   ├── Perubahan_Vegetasi_CapeTown_2024_2025.geojson
+│   ├── Classification_CapeTown_2024.tif
+│   └── Classification_CapeTown_2025.tif
+├── webgis/
+│   └── index.html                    # Aplikasi WebGIS
+└── report/
+    └── Laporan_Akhir_Kelompok6.pdf
 ```
+
+**Keterangan file hasil:**
+
+| File | Isi |
+|---|---|
+| `Vegetasi_CapeTown_2024.geojson` | Poligon vegetasi tahun 2024 (kelas 1) |
+| `Vegetasi_CapeTown_2025.geojson` | Poligon vegetasi tahun 2025 (kelas 1) |
+| `Perubahan_Vegetasi_CapeTown_2024_2025.geojson` | Poligon perubahan — atribut `kode_perubahan`: 1 = gain, 2 = loss, 3 = tetap vegetasi; atribut `keterangan`: Bertambah / Berkurang / Tetap Vegetasi |
+| `Classification_CapeTown_2024.tif` | Raster klasifikasi biner 2024 |
+| `Classification_CapeTown_2025.tif` | Raster klasifikasi biner 2025 |
 
 ---
 
-## 🚀 Quick Start & Installation
+## Cara Menjalankan Ulang Kode GEE
 
-Because this is a pure client-side WebGIS application, it does not require server-side compilation (e.g., Node.js or PHP). However, due to CORS (Cross-Origin Resource Sharing) restrictions on loading large local GeoJSON files, **you must serve the project from an HTTP server**.
+1. Buka [Google Earth Engine Code Editor](https://code.earthengine.google.com)
+2. Upload `data/GroundTruth_CapeTown_360.csv` ke GEE Assets
+   → **New** → **CSV file (.csv)** → pilih kolom `longitude` dan `latitude` → beri nama `groundtruth_cape_town`
+3. Upload `data/boundary_cape_town.geojson` ke GEE Assets dengan nama `Cape-Town`
+   (GEE tidak menerima GeoJSON secara langsung — konversi ke Shapefile `.zip` terlebih dahulu)
+4. Cek project ID akun GEE Anda:
+   ```javascript
+   print(ee.data.getAssetRoots());
+   ```
+5. Salin isi `gee/script_capetown_final.js` ke script baru, lalu ganti variabel `PROJECT_ID` di bagian awal dengan project ID Anda
+6. Klik **Run**
+7. Buka tab **Tasks** dan jalankan seluruh export task
 
-### Step 1: Clone the Repository
+**Catatan reproduksi:** Hasil numerik dapat sedikit berbeda antar-akun GEE karena `system:index` pada asset hasil re-upload berbeda, sehingga `randomColumn(seed 42)` menghasilkan pembagian training/testing yang tidak identik. Metodologi, parameter, dan alur analisis tetap sama.
+
+---
+
+## Cara Membuka WebGIS
+
+**Online:** akses langsung melalui tautan WebGIS di atas.
+
+**Lokal:**
 ```bash
-git clone https://github.com/haryoraafi/GeoAI-CapeTown-WebGIS.git
-cd GeoAI-CapeTown-WebGIS
-```
-
-### Step 2: Serve the Files
-Choose one of the following methods to host the project locally:
-
-#### Method A: VS Code Live Server (Recommended)
-1.  Open the workspace folder in **VS Code**.
-2.  Install the **Live Server** extension (by Ritwick Dey).
-3.  Right-click `index.html` in the file explorer and select **Open with Live Server**.
-4.  The app will launch at `http://127.0.0.1:5500`.
-
-#### Method B: Python HTTP Server (Zero Install)
-If you have Python installed, run this command in your terminal:
-```bash
-# For Python 3
-python -m http.server 8080
-```
-Then open your browser and navigate to: `http://localhost:8080`
-
-#### Method C: Node.js Serve (Command Line)
-```bash
-npx serve .
+git clone https://github.com/jamesanila10-oss/spatial-ml-capetown-kelompok6.git
+cd spatial-ml-capetown-kelompok6/webgis
+# buka index.html di browser, atau jalankan server lokal:
+python -m http.server 8000
+# lalu akses http://localhost:8000
 ```
 
 ---
 
-## 📊 Model Evaluation Summary (from `config/metrics.json`)
+## Tautan
 
-The Random Forest model was trained on **300 samples** split **70:30** into training and testing datasets.
-
-| Metric | Score / Value | Description |
-|--------|:---:|-------------|
-| **Accuracy** | **90.7%** | Overall correct classifications |
-| **Precision** | **94.6%** | Probability that predicted vegetation is correct |
-| **Recall** | **85.4%** | Probability that actual vegetation was detected |
-| **F1-Score** | **89.7%** | Harmonic mean of Precision and Recall |
-| **Random Seed** | 42 | Key parameter for train/test split reproducibility |
-| **Estimators** | 100 | Total trees constructed in the RF classifier |
-
-### Confusion Matrix
-*   **True Positives (TP):** 43 (Vegetation correctly identified)
-*   **True Negatives (TN):** 35 (Non-vegetation correctly identified)
-*   **False Positives (FP):** 6 (Non-vegetation misclassified as vegetation)
-*   **False Negatives (FN):** 2 (Vegetation missed by the model)
+- **Repository:** https://github.com/jamesanila10-oss/spatial-ml-capetown-kelompok6
+- **WebGIS:** https://jamesanila10-oss.github.io/spatial-ml-capetown-kelompok6/webgis/#map 
+- **Laporan Akhir:** [`report/Laporan_Akhir_Kelompok6.pdf`](report/)
 
 ---
 
-## 📈 Statistics & Findings (from `config/statistics.json`)
+## Referensi Data
 
-Analysis of land transition categories reveals a significant decline in vegetation:
-
-*   **Vegetation Extent (2024):** 81,040 ha
-*   **Vegetation Extent (2025):** 65,566 ha
-*   **Vegetation Gain:** +4,200 ha (reforestation, agricultural cycles, or regrowth)
-*   **Vegetation Loss:** −19,673 ha (primarily due to devastating wildfire events)
-*   **Net Area Change:** **−15,474 ha (−19.1% net reduction)**
-
----
-
-## 👥 Authors & Team Members
-This final project was completed by the following team:
-1.  **Anggota 1: Lead Spatial Data Engineer**
-    *   **Jobdesk Utama:** Menentukan wilayah studi (kota/kabupaten) dan memastikan batas administrasi jelas. Melakukan query citra Sentinel-2 (2024 & 2025), menerapkan cloud masking, menciptakan median composite, serta melakukan clipping wilayah.
-2.  **Anggota 2: Ground Truth Specialist**
-    *   **Jobdesk Utama:** Membuat minimal 300 titik sampel observasi berlabel (seimbang antara target kelas 1 dan non-target kelas 0) untuk tahun 2024 dan 2025. Memastikan sebaran titik merata di seluruh kota (pusat, pinggiran, berbagai kondisi).
-3.  **Anggota 3: Machine Learning Engineer**
-    *   **Jobdesk Utama:** Menulis kode GEE untuk melakukan split data otomatis (70% training, 30% testing) menggunakan seed tetap. Melatih model Random Forest dengan konfigurasi 100 trees dan melakukan klasifikasi citra dua tahun menggunakan model yang sama.
-4.  **Anggota 4: Model Evaluation & Change Analyst**
-    *   **Jobdesk Utama:** Menguji model dengan data testing, membuat confusion matrix, dan menghitung metrik APRF. Melakukan deteksi perubahan (change detection), menghitung luas pertambahan (gain), penyusutan (loss), perubahan bersih (net change), serta mengonversinya menjadi poligon vektor.
-5.  **Anggota 5: WebGIS Developer**
-    *   **Jobdesk Utama:** Membangun aplikasi WebGIS interaktif menggunakan platform pilihan (Leaflet.js/Streamlit/geemap). Mengintegrasikan file GeoJSON hasil klasifikasi dan perubahan, serta menyusun antarmuka aplikasi menjadi 4 tab wajib (Peta Hasil, Data & Proses, Evaluasi Model, Insight Hasil).
-6.  **Anggota 6: Repository Manager & Technical Writer**
-    *   **Jobdesk Utama:** Mengelola public repository GitHub dengan struktur folder yang rapi (gee/, webgis/, data/, results/, report/). Menulis dokumentasi lengkap pada README.md, menyusun laporan akhir ringkas (5-8 halaman), dan menyiapkan materi presentasi/demo tim.
-
----
-
-## 📝 License
-This project is submitted as a GeoAI final examination project. All source code, assets, and documentation are restricted to academic evaluation and non-commercial research purposes.
-
-*Built with ❤️ using Leaflet.js, Chart.js, Bootstrap 5, and pure JavaScript.*
+- European Space Agency (ESA) / Copernicus Programme. *Sentinel-2 Surface Reflectance Harmonized (COPERNICUS/S2_SR_HARMONIZED)*. Google Earth Engine Data Catalog.
+- Google LLC. *Google Earth Engine Developer Guide: ee.Classifier.smileRandomForest*.
